@@ -3,26 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Show Technologies - Gestione Tesserini</title>
+    <title>Show Technologies - Mobile Badge</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        /* Stili specifici per la Card (85x55mm proporzionale) */
+        /* Formato Verticale ottimizzato per Smartphone */
         #tesserino-print {
-            width: 350px;
-            height: 220px;
+            width: 320px;
+            min-height: 500px;
             background: white;
-            position: relative;
+            display: flex;
+            flex-direction: column;
+            border-radius: 1.5rem;
             overflow: hidden;
         }
         .header-gradient {
-            background: linear-gradient(90deg, #1e3a8a 0%, #3b82f6 100%);
+            background: linear-gradient(180deg, #1e3a8a 0%, #3b82f6 100%);
         }
         @media print { .no-print { display: none !important; } }
     </style>
 </head>
-<body class="bg-slate-100 min-h-screen font-sans">
+<body class="bg-slate-900 min-h-screen font-sans flex flex-col items-center">
 
     <script>
         // CONFIGURAZIONE GITHUB
@@ -31,117 +33,111 @@
         let GITHUB_TOKEN = "";
     </script>
 
-    <div id="login-screen" class="flex items-center justify-center min-h-screen p-4">
-        <div class="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-sm border border-slate-200">
+    <div id="login-screen" class="flex items-center justify-center min-h-screen w-full p-4">
+        <div class="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-sm">
             <div class="text-center mb-8">
-                <div class="bg-blue-700 w-16 h-16 rounded-2xl mx-auto flex items-center justify-center mb-4 text-white font-black text-2xl shadow-lg">ST</div>
-                <h1 class="text-2xl font-black text-slate-800 tracking-tight uppercase">Badge Portal</h1>
+                <h1 class="text-3xl font-black text-slate-800 tracking-tight italic">SHOW<br>TECH</h1>
+                <p class="text-blue-600 font-bold text-xs uppercase mt-2 tracking-widest">Digital Badge Access</p>
             </div>
-            <input type="text" id="cf-login" placeholder="CODICE FISCALE" class="w-full p-4 border-2 border-slate-100 rounded-xl mb-4 uppercase focus:border-blue-600 outline-none font-mono text-center tracking-widest transition-all">
-            <button onclick="checkAccess()" class="w-full bg-blue-700 text-white py-4 rounded-xl font-bold text-lg hover:bg-blue-800 transition-all shadow-lg">ENTRA</button>
+            <input type="text" id="cf-login" placeholder="CODICE FISCALE" class="w-full p-4 border-2 border-slate-100 rounded-2xl mb-4 uppercase focus:border-blue-600 outline-none font-mono text-center tracking-widest">
+            <button onclick="checkAccess()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold text-lg shadow-lg">ACCEDI</button>
         </div>
     </div>
 
-    <div id="admin-panel" class="hidden p-4 max-w-lg mx-auto pb-20">
-        <div class="bg-white p-6 rounded-3xl shadow-xl border-t-8 border-blue-700">
-            <h2 class="text-xl font-black mb-6 text-slate-800 uppercase italic flex justify-between items-center">
-                Nuovo Lavoratore
-                <button onclick="caricaDatiLavoratore()" class="text-[10px] bg-slate-100 px-3 py-1 rounded-full text-blue-700 border border-blue-200">🔍 Cerca CF</button>
-            </h2>
+    <div id="admin-panel" class="hidden p-4 w-full max-w-lg pb-20 mt-4">
+        <div class="bg-white p-6 rounded-3xl shadow-xl">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-black text-slate-800 uppercase italic">Admin Panel</h2>
+                <button onclick="caricaDatiLavoratore()" class="bg-slate-100 text-blue-700 px-4 py-2 rounded-xl text-[10px] font-black border border-blue-100 uppercase">Cerca CF</button>
+            </div>
             
             <div class="space-y-4">
-                <div class="border-2 border-dashed border-slate-200 rounded-2xl p-4 bg-slate-50 text-center">
-                    <video id="camera-feed" class="w-32 h-32 mx-auto object-cover rounded-xl bg-black hidden mb-2 border-2 border-blue-500"></video>
-                    <img id="photo-preview" class="w-32 h-32 mx-auto object-cover rounded-xl border-2 border-slate-300 bg-white mb-2" src="https://via.placeholder.com/150?text=FOTO" alt="Anteprima">
-                    <div class="flex gap-2 mb-2">
-                        <button onclick="toggleCamera()" id="btn-camera" class="flex-1 bg-slate-800 text-white py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider">📸 Attiva Camera</button>
-                        <button onclick="takePhoto()" id="btn-take-photo" class="flex-1 bg-green-600 text-white py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider hidden font-black">Scatta</button>
+                <div class="bg-slate-50 rounded-2xl p-4 text-center border-2 border-dashed border-slate-200">
+                    <video id="camera-feed" class="w-48 h-48 mx-auto object-cover rounded-2xl hidden mb-4 border-4 border-blue-500 shadow-xl"></video>
+                    <img id="photo-preview" class="w-48 h-48 mx-auto object-cover rounded-2xl border-4 border-white shadow-lg bg-white mb-4" src="https://via.placeholder.com/200?text=FOTO" alt="Anteprima">
+                    <div class="flex gap-2">
+                        <button onclick="toggleCamera()" id="btn-camera" class="flex-1 bg-slate-800 text-white py-3 rounded-xl text-xs font-bold uppercase">📸 Camera</button>
+                        <button onclick="takePhoto()" id="btn-take-photo" class="flex-1 bg-green-600 text-white py-3 rounded-xl text-xs font-bold uppercase hidden">Scatta</button>
                     </div>
-                    <input type="file" onchange="handleFileUpload(event)" class="text-[10px] w-full cursor-pointer">
+                    <input type="file" onchange="handleFileUpload(event)" class="mt-4 text-[10px] w-full text-center">
                     <canvas id="photo-canvas" style="display: none;"></canvas>
                 </div>
 
-                <div class="grid grid-cols-1 gap-3">
-                    <input type="text" id="adm-nome" placeholder="NOME E COGNOME" class="w-full p-3 border rounded-xl uppercase text-sm font-semibold">
-                    <input type="text" id="adm-cf" placeholder="CODICE FISCALE" class="w-full p-3 border rounded-xl uppercase text-sm font-mono tracking-tighter">
-                    <div class="grid grid-cols-2 gap-2">
-                        <div class="bg-slate-50 p-2 rounded-xl border">
-                            <label class="text-[9px] font-black text-slate-400 uppercase block">Data Nascita</label>
-                            <input type="date" id="adm-nascita" class="w-full bg-transparent text-sm">
+                <div class="space-y-3">
+                    <input type="text" id="adm-nome" placeholder="NOME E COGNOME" class="w-full p-4 bg-slate-50 rounded-2xl uppercase font-bold border-none text-sm">
+                    <input type="text" id="adm-cf" placeholder="CODICE FISCALE" class="w-full p-4 bg-slate-50 rounded-2xl uppercase font-mono tracking-widest border-none text-sm">
+                    <div class="grid grid-cols-2 gap-2 text-left text-[10px] font-bold text-slate-400">
+                        <div class="bg-slate-50 p-2 rounded-2xl">
+                            <label class="ml-2 uppercase">Nascita</label>
+                            <input type="date" id="adm-nascita" class="w-full bg-transparent p-1 text-slate-800 text-sm outline-none">
                         </div>
-                        <div class="bg-slate-50 p-2 rounded-xl border">
-                            <label class="text-[9px] font-black text-slate-400 uppercase block">Assunzione</label>
-                            <input type="date" id="adm-assunzione" class="w-full bg-transparent text-sm">
+                        <div class="bg-slate-50 p-2 rounded-2xl">
+                            <label class="ml-2 uppercase">Assunzione</label>
+                            <input type="date" id="adm-assunzione" class="w-full bg-transparent p-1 text-slate-800 text-sm outline-none">
                         </div>
                     </div>
-                    <div class="bg-blue-50 p-3 rounded-xl border border-blue-100">
-                        <label class="text-[9px] font-black text-blue-400 uppercase block mb-1">Dati Datore di Lavoro</label>
-                        <input type="text" id="adm-datore" placeholder="RAGIONE SOCIALE SOCIETÀ" class="w-full p-2 border rounded-lg uppercase text-xs font-bold mb-2">
-                        <input type="text" id="adm-indirizzo" placeholder="INDIRIZZO SEDE LEGALE" class="w-full p-2 border rounded-lg uppercase text-xs">
+                    <div class="bg-blue-50 p-4 rounded-2xl space-y-2">
+                        <input type="text" id="adm-datore" placeholder="NOME SOCIETÀ" class="w-full p-2 rounded-lg uppercase text-xs font-black">
+                        <input type="text" id="adm-indirizzo" placeholder="INDIRIZZO SEDE" class="w-full p-2 rounded-lg uppercase text-[10px]">
                     </div>
-                    <input type="text" id="adm-mansione" placeholder="MANSIONE / QUALIFICA" class="w-full p-3 border rounded-xl uppercase text-sm font-semibold">
-                    <input type="text" id="adm-subappalto" placeholder="AUTORIZZAZIONE SUBAPPALTO (SE PRESENTE)" class="w-full p-3 border rounded-xl uppercase text-sm font-semibold">
-                    <input type="text" id="adm-drive" placeholder="LINK GOOGLE DRIVE DOCUMENTI" class="w-full p-3 border rounded-xl text-sm">
+                    <input type="text" id="adm-mansione" placeholder="MANSIONE / QUALIFICA" class="w-full p-4 bg-slate-50 rounded-2xl uppercase font-bold border-none text-sm">
+                    <input type="text" id="adm-subappalto" placeholder="SUBAPPALTO (SE PRESENTE)" class="w-full p-4 bg-slate-50 rounded-2xl uppercase font-bold border-none text-sm">
+                    <input type="text" id="adm-drive" placeholder="LINK GOOGLE DRIVE" class="w-full p-4 bg-slate-50 rounded-2xl border-none text-sm">
                 </div>
 
-                <button onclick="saveToGitHub()" id="btn-save" class="w-full bg-blue-700 text-white py-4 rounded-2xl font-black shadow-lg uppercase tracking-widest mt-4">Registra Badge</button>
-                <button onclick="location.reload()" class="w-full text-slate-400 text-[10px] font-black uppercase py-2">Esci</button>
+                <button onclick="saveToGitHub()" id="btn-save" class="w-full bg-blue-600 text-white py-5 rounded-3xl font-black uppercase tracking-widest shadow-xl mt-6">Registra Badge</button>
+                <button onclick="location.reload()" class="w-full text-slate-400 font-bold uppercase py-2 text-[10px]">Esci</button>
             </div>
         </div>
     </div>
 
-    <div id="card-view" class="hidden p-4 flex flex-col items-center animate-in fade-in duration-700">
-        <div id="tesserino-print" class="rounded-2xl shadow-2xl border border-slate-200">
-            <div class="header-gradient p-3 text-center text-white h-[60px] flex flex-col justify-center border-b border-blue-800">
-                <h2 id="view-datore" class="font-black text-[12px] uppercase leading-tight tracking-wide">SOCIETÀ</h2>
-                <p id="view-indirizzo" class="text-[8px] font-medium opacity-80 uppercase leading-tight">Indirizzo Sede Legale</p>
+    <div id="card-view" class="hidden p-4 flex flex-col items-center w-full animate-in fade-in slide-in-from-bottom duration-700">
+        <div id="tesserino-print" class="shadow-2xl border border-slate-800/50">
+            <div class="header-gradient p-8 text-center text-white shrink-0">
+                <h2 id="view-datore" class="font-black text-xl uppercase tracking-tighter leading-none mb-1">SOCIETÀ</h2>
+                <p id="view-indirizzo" class="text-[9px] font-bold opacity-70 uppercase tracking-widest leading-tight">Indirizzo Sede</p>
             </div>
             
-            <div class="p-4 bg-white flex h-[160px]">
-                <div class="w-[100px] flex-shrink-0">
-                    <img id="view-foto" src="" class="w-[90px] h-[115px] object-cover rounded-lg border-2 border-slate-100 shadow-md">
+            <div class="p-6 flex-1 flex flex-col items-center text-center">
+                <img id="view-foto" src="" class="w-40 h-40 object-cover rounded-[2.5rem] border-4 border-slate-100 shadow-xl mb-6 -mt-16 bg-white">
+                
+                <div class="mb-6 w-full">
+                    <span class="text-[10px] font-black text-blue-600 uppercase tracking-[0.2em] block mb-1">Lavoratore</span>
+                    <h3 id="view-nome" class="font-black text-2xl uppercase text-slate-900 leading-tight">NOME COGNOME</h3>
                 </div>
-                <div class="flex-1 ml-2 flex flex-col">
-                    <div class="mb-2">
-                        <span class="text-[8px] font-black text-blue-600 uppercase">Lavoratore</span>
-                        <p id="view-nome" class="font-black text-[14px] leading-none uppercase text-slate-900">-</p>
-                    </div>
-                    
-                    <div class="grid grid-cols-2 gap-1 mb-2">
-                        <div>
-                            <span class="text-[7px] text-slate-400 uppercase font-bold">Nascita</span>
-                            <p id="view-nascita" class="font-bold text-slate-700 text-[9px] uppercase">-</p>
-                        </div>
-                        <div>
-                            <span class="text-[7px] text-slate-400 uppercase font-bold">Assunto</span>
-                            <p id="view-assunzione" class="font-bold text-slate-700 text-[9px] uppercase">-</p>
-                        </div>
-                    </div>
 
-                    <div class="mb-2 bg-slate-50 p-1 px-2 rounded-md border border-slate-100">
-                        <span class="text-[7px] text-slate-400 uppercase font-bold block">Qualifica</span>
-                        <p id="view-mansione" class="font-black text-slate-800 text-[9px] uppercase truncate">-</p>
+                <div class="grid grid-cols-2 gap-4 w-full mb-6 border-y border-slate-100 py-4 text-left px-2">
+                    <div>
+                        <span class="text-[8px] text-slate-400 font-black uppercase block">Data Nascita</span>
+                        <p id="view-nascita" class="font-bold text-slate-800 text-xs">-</p>
                     </div>
+                    <div class="text-right">
+                        <span class="text-[8px] text-slate-400 font-black uppercase block">Assunzione</span>
+                        <p id="view-assunzione" class="font-bold text-slate-800 text-xs">-</p>
+                    </div>
+                </div>
 
-                    <div id="box-sub" class="hidden bg-amber-50 p-1 px-2 rounded-md border border-amber-200">
-                        <span class="text-[7px] text-amber-600 font-bold uppercase block">Subappalto</span>
-                        <p id="view-sub" class="text-[8px] text-slate-800 font-bold leading-none truncate"></p>
-                    </div>
+                <div class="w-full mb-6 text-left bg-slate-50 p-4 rounded-3xl">
+                    <span class="text-[8px] text-slate-400 font-black uppercase block mb-1 italic">Qualifica</span>
+                    <p id="view-mansione" class="font-black text-slate-800 text-sm uppercase">-</p>
+                </div>
 
-                    <div class="mt-auto flex justify-between items-end border-t border-slate-50 pt-1">
-                        <div id="qrcode"></div>
-                        <div class="text-right">
-                            <span class="text-[8px] text-slate-300 font-black italic uppercase">Digital ID</span>
-                        </div>
-                    </div>
+                <div id="box-sub" class="hidden w-full mb-6 p-4 bg-amber-50 border-l-4 border-amber-500 rounded-r-2xl text-left">
+                    <span class="text-[8px] text-amber-700 font-black uppercase block">Subappalto</span>
+                    <p id="view-sub" class="text-[10px] text-amber-900 font-bold uppercase"></p>
+                </div>
+
+                <div class="mt-auto pt-6 flex flex-col items-center gap-3">
+                    <div id="qrcode" class="p-3 bg-white border border-slate-100 rounded-2xl shadow-inner"></div>
+                    <span class="text-[8px] text-slate-300 font-black uppercase tracking-[0.3em]">Verified Digital ID</span>
                 </div>
             </div>
         </div>
 
-        <div class="mt-8 flex flex-col gap-3 w-full max-w-[350px] no-print">
-            <button onclick="downloadPDF()" class="w-full bg-red-600 text-white py-4 rounded-2xl font-black shadow-lg uppercase tracking-widest text-xs">Stampa PDF (A4 Top-Left)</button>
-            <a id="view-drive" href="#" target="_blank" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-center uppercase tracking-widest text-xs italic">📂 Documenti Sicurezza</a>
-            <button onclick="location.reload()" class="text-slate-400 font-black py-2 text-[10px] uppercase tracking-widest">Esci</button>
+        <div class="mt-8 flex flex-col gap-4 w-full max-w-[320px] no-print">
+            <button onclick="downloadPDF()" class="w-full bg-red-600 text-white py-5 rounded-3xl font-black uppercase tracking-widest shadow-xl text-xs">Stampa Badge (PDF)</button>
+            <a id="view-drive" href="#" target="_blank" class="w-full bg-white text-slate-900 py-5 rounded-3xl font-black text-center uppercase tracking-widest shadow-xl text-xs border border-slate-200 italic">📂 Documenti Sicurezza</a>
+            <button onclick="location.reload()" class="text-slate-500 font-black py-2 text-[10px] uppercase">Chiudi Sessione</button>
         </div>
     </div>
 
@@ -166,14 +162,14 @@
                     video.classList.remove('hidden');
                     btnTake.classList.remove('hidden');
                     btn.innerText = "Spegni Camera";
-                } catch (e) { alert("Accesso camera negato."); }
+                } catch (e) { alert("Camera negata."); }
             }
         }
 
         function takePhoto() {
             const canvas = document.getElementById('photo-canvas');
-            canvas.width = 400; canvas.height = 500;
-            canvas.getContext('2d').drawImage(document.getElementById('camera-feed'), 0, 0, 400, 500);
+            canvas.width = 500; canvas.height = 500;
+            canvas.getContext('2d').drawImage(document.getElementById('camera-feed'), 0, 0, 500, 500);
             currentPhotoBase64 = canvas.toDataURL('image/jpeg', 0.8);
             document.getElementById('photo-preview').src = currentPhotoBase64;
             toggleCamera();
@@ -204,12 +200,38 @@
                 const lavoratori = JSON.parse(decodeURIComponent(escape(atob(data.content))));
                 const user = lavoratori.find(l => l.cf === cf);
                 if(user) showTesserino(user); else alert("Lavoratore non trovato.");
-            } catch (e) { alert("Errore database."); }
+            } catch (e) { alert("Errore connessione."); }
+        }
+
+        function showTesserino(data) {
+            document.getElementById('view-datore').innerText = data.datore;
+            document.getElementById('view-indirizzo').innerText = data.indirizzo || "";
+            document.getElementById('view-nome').innerText = data.nome;
+            document.getElementById('view-nascita').innerText = data.nascita;
+            document.getElementById('view-assunzione').innerText = data.assunzione;
+            document.getElementById('view-mansione').innerText = data.mansione;
+            document.getElementById('view-foto').src = data.foto || '';
+            document.getElementById('view-drive').href = data.drive || '#';
+            if(data.subappalto) { document.getElementById('box-sub').classList.remove('hidden'); document.getElementById('view-sub').innerText = data.subappalto; }
+            
+            // RIGENERA IL QR CODE
+            document.getElementById('qrcode').innerHTML = "";
+            new QRCode(document.getElementById("qrcode"), {
+                text: window.location.origin + window.location.pathname + "?id=" + data.cf,
+                width: 120,
+                height: 120,
+                colorDark : "#0f172a",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
+
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('card-view').classList.remove('hidden');
         }
 
         async function caricaDatiLavoratore() {
             const cf = document.getElementById('adm-cf').value.trim().toUpperCase();
-            if(!cf) return alert("Inserisci un CF.");
+            if(!cf) return alert("Inserisci CF.");
             try {
                 const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/lavoratori.json?nocache=${Date.now()}`;
                 const res = await fetch(url);
@@ -228,29 +250,13 @@
                     document.getElementById('photo-preview').src = user.foto;
                     currentPhotoBase64 = user.foto;
                     alert("Dati caricati!");
-                } else { alert("Nessun record trovato."); }
-            } catch (e) { alert("Errore ricerca."); }
-        }
-
-        function showTesserino(data) {
-            document.getElementById('view-datore').innerText = data.datore;
-            document.getElementById('view-indirizzo').innerText = data.indirizzo || "";
-            document.getElementById('view-nome').innerText = data.nome;
-            document.getElementById('view-nascita').innerText = data.nascita;
-            document.getElementById('view-assunzione').innerText = data.assunzione;
-            document.getElementById('view-mansione').innerText = data.mansione;
-            document.getElementById('view-foto').src = data.foto || '';
-            document.getElementById('view-drive').href = data.drive || '#';
-            if(data.subappalto) { document.getElementById('box-sub').classList.remove('hidden'); document.getElementById('view-sub').innerText = data.subappalto; }
-            document.getElementById('qrcode').innerHTML = "";
-            new QRCode(document.getElementById("qrcode"), { text: window.location.origin + window.location.pathname + "?id=" + data.cf, width: 45, height: 45 });
-            document.getElementById('login-screen').classList.add('hidden');
-            document.getElementById('card-view').classList.remove('hidden');
+                }
+            } catch (e) { alert("Errore."); }
         }
 
         async function saveToGitHub() {
             const btn = document.getElementById('btn-save');
-            btn.disabled = true; btn.innerText = "SALVATAGGIO...";
+            btn.disabled = true; btn.innerText = "Sincronizzazione...";
             const nuovo = {
                 nome: document.getElementById('adm-nome').value.toUpperCase(),
                 cf: document.getElementById('adm-cf').value.toUpperCase(),
@@ -275,8 +281,8 @@
                     headers: { "Authorization": `token ${GITHUB_TOKEN}`, "Content-Type": "application/json" },
                     body: JSON.stringify({ message: "Update", content: btoa(unescape(encodeURIComponent(JSON.stringify(lavoratori, null, 2)))), sha: fileData.sha })
                 });
-                alert("Dati salvati con successo!"); location.reload();
-            } catch (e) { alert("Errore: controlla il Token."); btn.disabled = false; btn.innerText = "Registra Badge"; }
+                alert("Badge registrato!"); location.reload();
+            } catch (e) { alert("Errore token."); btn.disabled = false; btn.innerText = "Registra Badge"; }
         }
 
         function downloadPDF() {
@@ -285,7 +291,8 @@
             const wrapper = document.createElement('div');
             wrapper.style.width = "210mm"; wrapper.style.height = "297mm"; wrapper.style.padding = "10mm";
             const clone = badge.cloneNode(true);
-            clone.style.width = "85mm"; clone.style.height = "55mm"; clone.style.boxShadow = "none"; clone.style.border = "1px solid #eee";
+            clone.style.width = "85mm"; clone.style.height = "135mm"; // Formato verticale su PDF
+            clone.style.boxShadow = "none"; clone.style.border = "1px solid #ccc";
             wrapper.appendChild(clone);
             html2pdf().from(wrapper).set({ margin: 0, filename: `Badge_${nomeLavoratore}.pdf`, html2canvas: { scale: 3, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } }).save();
         }
