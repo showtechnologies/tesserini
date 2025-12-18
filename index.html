@@ -20,11 +20,10 @@
         .header-blue {
             background: linear-gradient(180deg, #1e3a8a 0%, #1d4ed8 100%);
         }
-        /* Rimuove margini extra per evitare la seconda pagina PDF */
         .pdf-wrapper {
             margin: 0;
             padding: 0;
-            line-height: 0;
+            background: white;
         }
         @media print { .no-print { display: none !important; } }
     </style>
@@ -52,7 +51,7 @@
         <div class="bg-white p-6 rounded-3xl shadow-xl">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-xl font-black text-slate-800 uppercase italic">Admin Panel</h2>
-                <button onclick="caricaDatiLavoratore()" class="bg-slate-100 text-blue-700 px-4 py-2 rounded-xl text-[10px] font-black border border-blue-100 uppercase">Cerca CF</button>
+                <button onclick="caricaDatiLavoratore()" class="bg-slate-100 text-blue-700 px-4 py-2 rounded-xl text-[10px] font-black border border-blue-100 uppercase tracking-widest">Cerca CF</button>
             </div>
             
             <div class="space-y-4">
@@ -61,18 +60,18 @@
                     <img id="photo-preview" class="w-48 h-48 mx-auto object-cover rounded-2xl border-4 border-white shadow-lg bg-white mb-4" src="https://via.placeholder.com/200?text=FOTO" alt="Anteprima">
                     <div class="flex gap-2">
                         <button onclick="toggleCamera()" id="btn-camera" class="flex-1 bg-slate-800 text-white py-3 rounded-xl text-xs font-bold uppercase tracking-widest">📸 Camera</button>
-                        <button onclick="takePhoto()" id="btn-take-photo" class="flex-1 bg-green-600 text-white py-3 rounded-xl text-xs font-bold uppercase tracking-widest hidden">Scatta</button>
+                        <button onclick="takePhoto()" id="btn-take-photo" class="flex-1 bg-green-600 text-white py-3 rounded-xl text-xs font-bold uppercase hidden">Scatta</button>
                     </div>
                     <input type="file" onchange="handleFileUpload(event)" class="mt-4 text-[10px] w-full text-center">
                     <canvas id="photo-canvas" style="display: none;"></canvas>
                 </div>
 
                 <div class="space-y-3">
-                    <input type="text" id="adm-nome" placeholder="NOME E COGNOME" class="w-full p-4 bg-slate-50 rounded-2xl uppercase font-bold text-sm outline-none focus:ring-2 focus:ring-blue-500">
-                    <input type="text" id="adm-cf" placeholder="CODICE FISCALE" class="w-full p-4 bg-slate-50 rounded-2xl uppercase font-mono tracking-widest text-sm outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="text" id="adm-nome" placeholder="NOME E COGNOME" class="w-full p-4 bg-slate-50 rounded-2xl uppercase font-bold text-sm outline-none">
+                    <input type="text" id="adm-cf" placeholder="CODICE FISCALE" class="w-full p-4 bg-slate-50 rounded-2xl uppercase font-mono tracking-widest text-sm outline-none">
                     <div class="grid grid-cols-2 gap-2 text-[10px] font-bold text-slate-400">
-                        <div class="bg-slate-50 p-2 rounded-2xl"><label class="ml-2">Nascita</label><input type="date" id="adm-nascita" class="w-full bg-transparent p-1 text-slate-800 text-sm outline-none"></div>
-                        <div class="bg-slate-50 p-2 rounded-2xl"><label class="ml-2">Assunzione</label><input type="date" id="adm-assunzione" class="w-full bg-transparent p-1 text-slate-800 text-sm outline-none"></div>
+                        <div class="bg-slate-50 p-2 rounded-2xl"><label class="ml-2 uppercase">Nascita</label><input type="date" id="adm-nascita" class="w-full bg-transparent p-1 text-slate-800 text-sm outline-none"></div>
+                        <div class="bg-slate-50 p-2 rounded-2xl"><label class="ml-2 uppercase">Assunzione</label><input type="date" id="adm-assunzione" class="w-full bg-transparent p-1 text-slate-800 text-sm outline-none"></div>
                     </div>
                     <div class="bg-blue-50 p-4 rounded-2xl space-y-2 border border-blue-100">
                         <input type="text" id="adm-datore" placeholder="NOME SOCIETÀ" class="w-full p-2 rounded-lg uppercase text-xs font-black outline-none border border-blue-200">
@@ -92,19 +91,19 @@
     <div id="card-view" class="hidden p-4 flex flex-col items-center w-full max-w-sm animate-in fade-in duration-700">
         
         <div id="tesserino-print" class="shadow-2xl">
-            <div class="header-blue p-6 text-center text-white shrink-0 min-h-[100px] flex flex-col justify-center">
+            <div class="header-blue p-6 text-center text-white shrink-0 flex flex-col justify-center">
                 <h2 id="view-datore" class="font-black text-lg uppercase tracking-tight leading-tight">NOME SOCIETÀ</h2>
                 <p id="view-indirizzo" class="text-[9px] font-bold opacity-80 uppercase tracking-widest leading-tight mt-1 px-4">Indirizzo Sede Legale</p>
             </div>
             
-            <div class="p-6 flex-1 flex flex-col items-center">
-                <div class="mb-6">
-                    <img id="view-foto" src="" class="w-40 h-40 object-cover rounded-[2rem] border-[4px] border-slate-100 shadow-lg bg-slate-100">
+            <div class="p-6 flex-1 flex flex-col items-center bg-white">
+                <div class="mb-6 block">
+                    <img id="view-foto" src="" class="w-40 h-40 object-cover rounded-[2rem] border-[4px] border-slate-100 shadow-lg bg-slate-100 mx-auto">
                 </div>
                 
                 <div class="mb-6 text-center w-full">
                     <span class="text-[10px] font-black text-blue-600 uppercase tracking-[0.2em] block mb-1">Lavoratore Autorizzato</span>
-                    <h3 id="view-nome" class="font-black text-2xl uppercase text-slate-900 leading-tight">NOME COGNOME</h3>
+                    <h3 id="view-nome" class="font-black text-2xl uppercase text-slate-900 leading-tight">-</h3>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4 w-full mb-6 border-y border-slate-100 py-4 text-left px-2">
@@ -139,7 +138,7 @@
             </div>
         </div>
 
-        <div class="flex flex-col gap-4 w-full no-print pb-10">
+        <div class="flex flex-col gap-4 w-full no-print pb-10 mt-6">
             <button onclick="downloadPDF()" class="w-full bg-red-600 text-white py-5 rounded-3xl font-black uppercase tracking-widest shadow-xl text-xs active:scale-95 transition">Scarica PDF (A4)</button>
             <a id="view-drive" href="#" target="_blank" class="w-full bg-white text-slate-900 py-5 rounded-3xl font-black text-center uppercase tracking-widest shadow-xl text-xs border border-slate-200">📂 Documentazione Sicurezza</a>
             <button onclick="location.reload()" class="text-slate-500 font-bold py-2 text-[10px] uppercase tracking-widest text-center">Esci</button>
@@ -178,10 +177,7 @@
 
         function handleFileUpload(e) {
             const reader = new FileReader();
-            reader.onload = (ev) => {
-                currentPhotoBase64 = ev.target.result;
-                document.getElementById('photo-preview').src = currentPhotoBase64;
-            };
+            reader.onload = (ev) => { currentPhotoBase64 = ev.target.result; document.getElementById('photo-preview').src = currentPhotoBase64; };
             reader.readAsDataURL(e.target.files[0]);
         }
 
@@ -254,7 +250,7 @@
                     currentPhotoBase64 = user.foto;
                     alert("Dati caricati!");
                 }
-            } catch (e) { alert("Errore."); }
+            } catch (e) { alert("Errore ricerca."); }
         }
 
         async function saveToGitHub() {
@@ -292,22 +288,22 @@
             const badge = document.getElementById('tesserino-print');
             const nomeLavoratore = document.getElementById('view-nome').innerText;
             
-            // Wrapper ultra-pulito per evitare la seconda pagina
             const printWrapper = document.createElement('div');
             printWrapper.className = "pdf-wrapper";
             
             const clone = badge.cloneNode(true);
             clone.style.boxShadow = "none";
             clone.style.margin = "0";
+            clone.style.width = "350px"; // Forza larghezza clone
             printWrapper.appendChild(clone);
 
             const opt = {
-                margin: 0,
+                margin: [10, 10], // Margine fisico sul foglio
                 filename: `Badge_${nomeLavoratore.replace(/\s+/g, '_')}.pdf`,
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: { scale: 3, useCORS: true, scrollY: 0 },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                pagebreak: { mode: 'avoid' } // Evita salti di pagina inutili
+                pagebreak: { mode: 'avoid' }
             };
             
             html2pdf().from(printWrapper).set(opt).save();
