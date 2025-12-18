@@ -3,109 +3,145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Show Technologies - Badge System</title>
+    <title>Show Technologies - Gestione Tesserini</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        .bg-tech { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); }
+        /* Stili specifici per la Card (85x55mm proporzionale) */
+        #tesserino-print {
+            width: 350px;
+            height: 220px;
+            background: white;
+            position: relative;
+            overflow: hidden;
+        }
+        .header-gradient {
+            background: linear-gradient(90deg, #1e3a8a 0%, #3b82f6 100%);
+        }
         @media print { .no-print { display: none !important; } }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen font-sans">
+<body class="bg-slate-100 min-h-screen font-sans">
 
     <script>
-        // CONFIGURAZIONE - INSERISCI I TUOI DATI QUI
+        // CONFIGURAZIONE GITHUB
         const GITHUB_USER = "showtechnologies";
         const GITHUB_REPO = "tesserini";
-        let GITHUB_TOKEN = ""; // Lascia vuoto: verrà chiesto all'accesso Admin
+        let GITHUB_TOKEN = "";
     </script>
 
     <div id="login-screen" class="flex items-center justify-center min-h-screen p-4">
-        <div class="bg-white p-8 rounded-3xl shadow-xl w-full max-w-sm border border-slate-200 text-center">
-            <div class="bg-blue-600 w-16 h-16 rounded-2xl mx-auto flex items-center justify-center mb-4 shadow-lg shadow-blue-200 text-white font-black italic text-2xl">ST</div>
-            <h1 class="text-2xl font-black text-slate-800 mb-6 uppercase tracking-tight">Badge System</h1>
-            <input type="text" id="cf-login" placeholder="CODICE FISCALE" class="w-full p-4 border-2 border-slate-100 rounded-2xl mb-4 uppercase focus:border-blue-500 outline-none font-mono text-center tracking-widest">
-            <button onclick="checkAccess()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold text-lg hover:bg-blue-700 transition-all">ACCEDI</button>
+        <div class="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-sm border border-slate-200">
+            <div class="text-center mb-8">
+                <div class="bg-blue-700 w-16 h-16 rounded-2xl mx-auto flex items-center justify-center mb-4 text-white font-black text-2xl shadow-lg">ST</div>
+                <h1 class="text-2xl font-black text-slate-800 tracking-tight uppercase">Badge Portal</h1>
+            </div>
+            <input type="text" id="cf-login" placeholder="CODICE FISCALE" class="w-full p-4 border-2 border-slate-100 rounded-xl mb-4 uppercase focus:border-blue-600 outline-none font-mono text-center tracking-widest transition-all">
+            <button onclick="checkAccess()" class="w-full bg-blue-700 text-white py-4 rounded-xl font-bold text-lg hover:bg-blue-800 transition-all shadow-lg">ENTRA</button>
         </div>
     </div>
 
     <div id="admin-panel" class="hidden p-4 max-w-lg mx-auto pb-20">
-        <div class="bg-white p-6 rounded-3xl shadow-xl border-t-8 border-blue-600">
-            <h2 class="text-xl font-black mb-6 text-slate-800 uppercase italic text-center">Gestione Database</h2>
+        <div class="bg-white p-6 rounded-3xl shadow-xl border-t-8 border-blue-700">
+            <h2 class="text-xl font-black mb-6 text-slate-800 uppercase italic flex justify-between items-center">
+                Nuovo Lavoratore
+                <button onclick="caricaDatiLavoratore()" class="text-[10px] bg-slate-100 px-3 py-1 rounded-full text-blue-700 border border-blue-200">🔍 Cerca CF</button>
+            </h2>
             
             <div class="space-y-4">
                 <div class="border-2 border-dashed border-slate-200 rounded-2xl p-4 bg-slate-50 text-center">
-                    <video id="camera-feed" class="w-40 h-40 mx-auto object-cover rounded-2xl bg-black hidden border-2 border-blue-500 mb-4"></video>
-                    <img id="photo-preview" class="w-40 h-40 mx-auto object-cover rounded-2xl border-2 border-slate-300 bg-white mb-4" src="https://via.placeholder.com/160x160?text=FOTO" alt="Anteprima">
-                    <div class="flex gap-2 mb-3">
-                        <button onclick="toggleCamera()" id="btn-camera" class="flex-1 bg-slate-800 text-white py-2 rounded-xl text-[10px] font-bold uppercase">📸 Camera</button>
-                        <button onclick="takePhoto()" id="btn-take-photo" class="flex-1 bg-green-600 text-white py-2 rounded-xl text-[10px] font-bold uppercase hidden">Scatta</button>
+                    <video id="camera-feed" class="w-32 h-32 mx-auto object-cover rounded-xl bg-black hidden mb-2 border-2 border-blue-500"></video>
+                    <img id="photo-preview" class="w-32 h-32 mx-auto object-cover rounded-xl border-2 border-slate-300 bg-white mb-2" src="https://via.placeholder.com/150?text=FOTO" alt="Anteprima">
+                    <div class="flex gap-2 mb-2">
+                        <button onclick="toggleCamera()" id="btn-camera" class="flex-1 bg-slate-800 text-white py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider">📸 Attiva Camera</button>
+                        <button onclick="takePhoto()" id="btn-take-photo" class="flex-1 bg-green-600 text-white py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider hidden font-black">Scatta</button>
                     </div>
-                    <input type="file" onchange="handleFileUpload(event)" class="text-[10px] w-full">
+                    <input type="file" onchange="handleFileUpload(event)" class="text-[10px] w-full cursor-pointer">
                     <canvas id="photo-canvas" style="display: none;"></canvas>
                 </div>
 
-                <input type="text" id="adm-nome" placeholder="NOME E COGNOME" class="w-full p-3 border rounded-xl uppercase text-sm font-semibold">
-                <input type="text" id="adm-cf" placeholder="CODICE FISCALE" class="w-full p-3 border rounded-xl uppercase text-sm font-mono tracking-widest">
-                <div class="grid grid-cols-2 gap-2">
-                    <div class="bg-slate-50 p-2 rounded-xl border text-left">
-                        <label class="text-[9px] font-black text-slate-400 uppercase ml-1">Nascita</label>
-                        <input type="date" id="adm-nascita" class="w-full bg-transparent text-sm">
+                <div class="grid grid-cols-1 gap-3">
+                    <input type="text" id="adm-nome" placeholder="NOME E COGNOME" class="w-full p-3 border rounded-xl uppercase text-sm font-semibold">
+                    <input type="text" id="adm-cf" placeholder="CODICE FISCALE" class="w-full p-3 border rounded-xl uppercase text-sm font-mono tracking-tighter">
+                    <div class="grid grid-cols-2 gap-2">
+                        <div class="bg-slate-50 p-2 rounded-xl border">
+                            <label class="text-[9px] font-black text-slate-400 uppercase block">Data Nascita</label>
+                            <input type="date" id="adm-nascita" class="w-full bg-transparent text-sm">
+                        </div>
+                        <div class="bg-slate-50 p-2 rounded-xl border">
+                            <label class="text-[9px] font-black text-slate-400 uppercase block">Assunzione</label>
+                            <input type="date" id="adm-assunzione" class="w-full bg-transparent text-sm">
+                        </div>
                     </div>
-                    <div class="bg-slate-50 p-2 rounded-xl border text-left">
-                        <label class="text-[9px] font-black text-slate-400 uppercase ml-1">Assunzione</label>
-                        <input type="date" id="adm-assunzione" class="w-full bg-transparent text-sm">
+                    <div class="bg-blue-50 p-3 rounded-xl border border-blue-100">
+                        <label class="text-[9px] font-black text-blue-400 uppercase block mb-1">Dati Datore di Lavoro</label>
+                        <input type="text" id="adm-datore" placeholder="RAGIONE SOCIALE SOCIETÀ" class="w-full p-2 border rounded-lg uppercase text-xs font-bold mb-2">
+                        <input type="text" id="adm-indirizzo" placeholder="INDIRIZZO SEDE LEGALE" class="w-full p-2 border rounded-lg uppercase text-xs">
                     </div>
+                    <input type="text" id="adm-mansione" placeholder="MANSIONE / QUALIFICA" class="w-full p-3 border rounded-xl uppercase text-sm font-semibold">
+                    <input type="text" id="adm-subappalto" placeholder="AUTORIZZAZIONE SUBAPPALTO (SE PRESENTE)" class="w-full p-3 border rounded-xl uppercase text-sm font-semibold">
+                    <input type="text" id="adm-drive" placeholder="LINK GOOGLE DRIVE DOCUMENTI" class="w-full p-3 border rounded-xl text-sm">
                 </div>
-                <input type="text" id="adm-datore" placeholder="DATORE DI LAVORO" class="w-full p-3 border rounded-xl uppercase text-sm font-semibold">
-                <input type="text" id="adm-mansione" placeholder="MANSIONE / QUALIFICA" class="w-full p-3 border rounded-xl uppercase text-sm font-semibold">
-                <input type="text" id="adm-subappalto" placeholder="SUBAPPALTO (OPZIONALE)" class="w-full p-3 border rounded-xl uppercase text-sm font-semibold">
-                <input type="text" id="adm-drive" placeholder="LINK DRIVE SICUREZZA" class="w-full p-3 border rounded-xl text-sm">
 
-                <button onclick="saveToGitHub()" id="btn-save" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest mt-4 shadow-lg">Salva Lavoratore</button>
-                <button onclick="location.reload()" class="w-full text-slate-400 text-[10px] font-black uppercase">Esci</button>
+                <button onclick="saveToGitHub()" id="btn-save" class="w-full bg-blue-700 text-white py-4 rounded-2xl font-black shadow-lg uppercase tracking-widest mt-4">Registra Badge</button>
+                <button onclick="location.reload()" class="w-full text-slate-400 text-[10px] font-black uppercase py-2">Esci</button>
             </div>
         </div>
     </div>
 
-    <div id="card-view" class="hidden p-4 flex flex-col items-center">
-        <div id="tesserino-print" class="bg-white w-full max-w-[360px] rounded-[2.5rem] shadow-2xl overflow-hidden border border-slate-200">
-            <div class="bg-tech p-6 text-center text-white">
-                <h2 id="view-datore" class="font-black text-sm uppercase tracking-widest">AZIENDA</h2>
+    <div id="card-view" class="hidden p-4 flex flex-col items-center animate-in fade-in duration-700">
+        <div id="tesserino-print" class="rounded-2xl shadow-2xl border border-slate-200">
+            <div class="header-gradient p-3 text-center text-white h-[60px] flex flex-col justify-center border-b border-blue-800">
+                <h2 id="view-datore" class="font-black text-[12px] uppercase leading-tight tracking-wide">SOCIETÀ</h2>
+                <p id="view-indirizzo" class="text-[8px] font-medium opacity-80 uppercase leading-tight">Indirizzo Sede Legale</p>
             </div>
-            <div class="p-6">
-                <div class="flex gap-4 mb-6">
-                    <img id="view-foto" src="" class="w-28 h-36 object-cover rounded-2xl border-4 border-white shadow-xl bg-slate-50">
-                    <div class="flex-1">
-                        <span class="text-[9px] font-black text-blue-600 uppercase">Worker ID</span>
-                        <p id="view-nome" class="font-black text-xl leading-tight uppercase text-slate-900">-</p>
-                        <div class="mt-2 space-y-1">
-                            <span class="text-[8px] text-slate-400 uppercase block">Nascita: <span id="view-nascita" class="text-slate-700"></span></span>
-                            <span class="text-[8px] text-slate-400 uppercase block">Assunzione: <span id="view-assunzione" class="text-slate-700"></span></span>
+            
+            <div class="p-4 bg-white flex h-[160px]">
+                <div class="w-[100px] flex-shrink-0">
+                    <img id="view-foto" src="" class="w-[90px] h-[115px] object-cover rounded-lg border-2 border-slate-100 shadow-md">
+                </div>
+                <div class="flex-1 ml-2 flex flex-col">
+                    <div class="mb-2">
+                        <span class="text-[8px] font-black text-blue-600 uppercase">Lavoratore</span>
+                        <p id="view-nome" class="font-black text-[14px] leading-none uppercase text-slate-900">-</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-1 mb-2">
+                        <div>
+                            <span class="text-[7px] text-slate-400 uppercase font-bold">Nascita</span>
+                            <p id="view-nascita" class="font-bold text-slate-700 text-[9px] uppercase">-</p>
+                        </div>
+                        <div>
+                            <span class="text-[7px] text-slate-400 uppercase font-bold">Assunto</span>
+                            <p id="view-assunzione" class="font-bold text-slate-700 text-[9px] uppercase">-</p>
                         </div>
                     </div>
-                </div>
-                <div class="bg-slate-50 rounded-xl p-3 mb-4">
-                    <span class="text-[8px] text-slate-400 uppercase block">Mansione</span>
-                    <p id="view-mansione" class="font-black text-slate-800 text-xs uppercase italic">-</p>
-                </div>
-                <div id="box-sub" class="hidden mb-4 p-3 bg-amber-50 border-l-4 border-amber-500 rounded-r-xl">
-                    <p id="view-sub" class="text-[10px] text-amber-900 font-bold uppercase"></p>
-                </div>
-                <div class="flex justify-between items-center bg-white border p-3 rounded-2xl">
-                    <div id="qrcode"></div>
-                    <div class="text-right">
-                        <div class="bg-green-100 text-green-700 text-[8px] px-2 py-1 rounded-full font-black uppercase mb-1 inline-block">Verified</div>
-                        <span class="text-[9px] text-slate-300 font-black block uppercase">Issue 2025</span>
+
+                    <div class="mb-2 bg-slate-50 p-1 px-2 rounded-md border border-slate-100">
+                        <span class="text-[7px] text-slate-400 uppercase font-bold block">Qualifica</span>
+                        <p id="view-mansione" class="font-black text-slate-800 text-[9px] uppercase truncate">-</p>
+                    </div>
+
+                    <div id="box-sub" class="hidden bg-amber-50 p-1 px-2 rounded-md border border-amber-200">
+                        <span class="text-[7px] text-amber-600 font-bold uppercase block">Subappalto</span>
+                        <p id="view-sub" class="text-[8px] text-slate-800 font-bold leading-none truncate"></p>
+                    </div>
+
+                    <div class="mt-auto flex justify-between items-end border-t border-slate-50 pt-1">
+                        <div id="qrcode"></div>
+                        <div class="text-right">
+                            <span class="text-[8px] text-slate-300 font-black italic uppercase">Digital ID</span>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="mt-8 flex flex-col gap-4 w-full max-w-[360px] no-print">
-            <button onclick="downloadPDF()" class="w-full bg-red-600 text-white py-4 rounded-2xl font-black uppercase text-xs tracking-widest">Esporta PDF</button>
-            <a id="view-drive" href="#" target="_blank" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-center uppercase text-xs tracking-widest italic">📂 Documenti Sicurezza</a>
-            <button onclick="location.reload()" class="text-slate-400 font-black py-2 text-[10px] uppercase">Indietro</button>
+
+        <div class="mt-8 flex flex-col gap-3 w-full max-w-[350px] no-print">
+            <button onclick="downloadPDF()" class="w-full bg-red-600 text-white py-4 rounded-2xl font-black shadow-lg uppercase tracking-widest text-xs">Stampa PDF (A4 Top-Left)</button>
+            <a id="view-drive" href="#" target="_blank" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-center uppercase tracking-widest text-xs italic">📂 Documenti Sicurezza</a>
+            <button onclick="location.reload()" class="text-slate-400 font-black py-2 text-[10px] uppercase tracking-widest">Esci</button>
         </div>
     </div>
 
@@ -121,7 +157,7 @@
                 stream.getTracks().forEach(t => t.stop());
                 video.classList.add('hidden');
                 btnTake.classList.add('hidden');
-                btn.innerText = "📸 Camera";
+                btn.innerText = "📸 Attiva Camera";
                 stream = null;
             } else {
                 try {
@@ -129,8 +165,8 @@
                     video.srcObject = stream;
                     video.classList.remove('hidden');
                     btnTake.classList.remove('hidden');
-                    btn.innerText = "🛑 Off";
-                } catch (e) { alert("Camera negata"); }
+                    btn.innerText = "Spegni Camera";
+                } catch (e) { alert("Accesso camera negato."); }
             }
         }
 
@@ -138,7 +174,7 @@
             const canvas = document.getElementById('photo-canvas');
             canvas.width = 400; canvas.height = 500;
             canvas.getContext('2d').drawImage(document.getElementById('camera-feed'), 0, 0, 400, 500);
-            currentPhotoBase64 = canvas.toDataURL('image/jpeg', 0.7);
+            currentPhotoBase64 = canvas.toDataURL('image/jpeg', 0.8);
             document.getElementById('photo-preview').src = currentPhotoBase64;
             toggleCamera();
         }
@@ -152,7 +188,6 @@
         async function checkAccess() {
             const cf = document.getElementById('cf-login').value.trim().toUpperCase();
             if(!cf) return;
-
             if(cf === "ADMIN123") {
                 const pass = prompt("INSERISCI GITHUB TOKEN:");
                 if (pass && pass.startsWith("github_pat_")) {
@@ -162,19 +197,44 @@
                 } else { alert("Token non valido."); }
                 return;
             }
-
             try {
                 const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/lavoratori.json?nocache=${Date.now()}`;
                 const res = await fetch(url);
                 const data = await res.json();
                 const lavoratori = JSON.parse(decodeURIComponent(escape(atob(data.content))));
                 const user = lavoratori.find(l => l.cf === cf);
-                if(user) showTesserino(user); else alert("Non trovato.");
+                if(user) showTesserino(user); else alert("Lavoratore non trovato.");
             } catch (e) { alert("Errore database."); }
+        }
+
+        async function caricaDatiLavoratore() {
+            const cf = document.getElementById('adm-cf').value.trim().toUpperCase();
+            if(!cf) return alert("Inserisci un CF.");
+            try {
+                const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/lavoratori.json?nocache=${Date.now()}`;
+                const res = await fetch(url);
+                const data = await res.json();
+                const lavoratori = JSON.parse(decodeURIComponent(escape(atob(data.content))));
+                const user = lavoratori.find(l => l.cf === cf);
+                if(user) {
+                    document.getElementById('adm-nome').value = user.nome;
+                    document.getElementById('adm-nascita').value = user.nascita;
+                    document.getElementById('adm-assunzione').value = user.assunzione;
+                    document.getElementById('adm-datore').value = user.datore;
+                    document.getElementById('adm-indirizzo').value = user.indirizzo || "";
+                    document.getElementById('adm-mansione').value = user.mansione;
+                    document.getElementById('adm-subappalto').value = user.subappalto || "";
+                    document.getElementById('adm-drive').value = user.drive || "";
+                    document.getElementById('photo-preview').src = user.foto;
+                    currentPhotoBase64 = user.foto;
+                    alert("Dati caricati!");
+                } else { alert("Nessun record trovato."); }
+            } catch (e) { alert("Errore ricerca."); }
         }
 
         function showTesserino(data) {
             document.getElementById('view-datore').innerText = data.datore;
+            document.getElementById('view-indirizzo').innerText = data.indirizzo || "";
             document.getElementById('view-nome').innerText = data.nome;
             document.getElementById('view-nascita').innerText = data.nascita;
             document.getElementById('view-assunzione').innerText = data.assunzione;
@@ -183,7 +243,7 @@
             document.getElementById('view-drive').href = data.drive || '#';
             if(data.subappalto) { document.getElementById('box-sub').classList.remove('hidden'); document.getElementById('view-sub').innerText = data.subappalto; }
             document.getElementById('qrcode').innerHTML = "";
-            new QRCode(document.getElementById("qrcode"), { text: window.location.origin + window.location.pathname + "?id=" + data.cf, width: 80, height: 80 });
+            new QRCode(document.getElementById("qrcode"), { text: window.location.origin + window.location.pathname + "?id=" + data.cf, width: 45, height: 45 });
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('card-view').classList.remove('hidden');
         }
@@ -197,6 +257,7 @@
                 nascita: document.getElementById('adm-nascita').value,
                 assunzione: document.getElementById('adm-assunzione').value,
                 datore: document.getElementById('adm-datore').value.toUpperCase(),
+                indirizzo: document.getElementById('adm-indirizzo').value.toUpperCase(),
                 mansione: document.getElementById('adm-mansione').value.toUpperCase(),
                 subappalto: document.getElementById('adm-subappalto').value.toUpperCase(),
                 drive: document.getElementById('adm-drive').value,
@@ -214,12 +275,19 @@
                     headers: { "Authorization": `token ${GITHUB_TOKEN}`, "Content-Type": "application/json" },
                     body: JSON.stringify({ message: "Update", content: btoa(unescape(encodeURIComponent(JSON.stringify(lavoratori, null, 2)))), sha: fileData.sha })
                 });
-                alert("Salvato!"); location.reload();
-            } catch (e) { alert("Errore permessi."); btn.disabled = false; btn.innerText = "Salva Lavoratore"; }
+                alert("Dati salvati con successo!"); location.reload();
+            } catch (e) { alert("Errore: controlla il Token."); btn.disabled = false; btn.innerText = "Registra Badge"; }
         }
 
         function downloadPDF() {
-            html2pdf().from(document.getElementById('tesserino-print')).set({ margin: 20, filename: 'Tesserino.pdf', html2canvas: { scale: 3, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } }).save();
+            const badge = document.getElementById('tesserino-print');
+            const nomeLavoratore = document.getElementById('view-nome').innerText;
+            const wrapper = document.createElement('div');
+            wrapper.style.width = "210mm"; wrapper.style.height = "297mm"; wrapper.style.padding = "10mm";
+            const clone = badge.cloneNode(true);
+            clone.style.width = "85mm"; clone.style.height = "55mm"; clone.style.boxShadow = "none"; clone.style.border = "1px solid #eee";
+            wrapper.appendChild(clone);
+            html2pdf().from(wrapper).set({ margin: 0, filename: `Badge_${nomeLavoratore}.pdf`, html2canvas: { scale: 3, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } }).save();
         }
 
         window.onload = () => { const id = new URLSearchParams(window.location.search).get('id'); if(id) { document.getElementById('cf-login').value = id; checkAccess(); } }
