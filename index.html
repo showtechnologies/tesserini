@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestionale Tesserini Digitali</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        .card-bg { background: linear-gradient(135deg, #ffffff 0%, #f3f4f6 100%); }
+        @media print { .no-print { display: none; } }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen font-sans">
+
+    <div id="login-section" class="flex flex-col items-center justify-center min-h-screen p-4">
+        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md">
+            <h1 class="text-2xl font-bold text-gray-800 mb-6 text-center">Accesso Tesserino</h1>
+            <input type="text" id="cf-input" placeholder="Inserisci Codice Fiscale" class="w-full p-4 border rounded-lg mb-4 uppercase focus:ring-2 focus:ring-blue-500 outline-none">
+            <button onclick="checkAccess()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition">ENTRA</button>
+            <p class="text-xs text-center text-gray-400 mt-4">Admin: usare CF "ADMIN123"</p>
+        </div>
+    </div>
+
+    <div id="admin-section" class="hidden p-4 max-w-2xl mx-auto">
+        <button onclick="location.reload()" class="text-blue-600 mb-4 flex items-center">← Esci</button>
+        <div class="bg-white p-6 rounded-xl shadow-md">
+            <h2 class="text-xl font-bold mb-4">Pannello Inserimento Dati</h2>
+            <div class="grid grid-cols-1 gap-4">
+                <input type="text" id="adm-nome" placeholder="Nome e Cognome" class="p-2 border rounded">
+                <input type="text" id="adm-cf" placeholder="Codice Fiscale" class="p-2 border rounded uppercase">
+                <input type="date" id="adm-nascita" class="p-2 border rounded">
+                <input type="text" id="adm-datore" placeholder="Datore di Lavoro / Committente" class="p-2 border rounded">
+                <input type="text" id="adm-mansione" placeholder="Qualifica / Mansione" class="p-2 border rounded">
+                <input type="date" id="adm-assunzione" class="p-2 border rounded">
+                <input type="text" id="adm-subappalto" placeholder="Autorizzazione Subappalto (opzionale)" class="p-2 border rounded">
+                <input type="text" id="adm-drive" placeholder="Link Cartella Google Drive Sicurezza" class="p-2 border rounded">
+                <label class="text-sm text-gray-600">URL Foto (Carica su Imgur o simile per test):</label>
+                <input type="text" id="adm-foto" placeholder="https://link-immagine.jpg" class="p-2 border rounded">
+                <button onclick="saveAndPreview()" class="bg-green-600 text-white py-3 rounded-lg font-bold shadow-lg">GENERA TESSERINO</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="tesserino-section" class="hidden p-4 flex flex-col items-center">
+        <div class="w-full max-w-sm no-print mb-6 flex justify-between">
+            <button onclick="location.reload()" class="text-gray-500">← Indietro</button>
+            <button onclick="downloadPDF()" class="bg-red-500 text-white px-4 py-1 rounded text-sm font-bold shadow">SCARICA PDF</button>
+        </div>
+
+        <div id="tesserino-card" class="card-bg w-full max-w-sm border-2 border-gray-300 rounded-2xl shadow-2xl overflow-hidden relative bg-white">
+            <div class="bg-blue-800 p-4 text-center">
+                <h3 id="view-datore" class="text-white font-bold uppercase tracking-wider">NOME AZIENDA</h3>
+                <p class="text-blue-200 text-xs">Tesserino di Riconoscimento Art. 18 D.Lgs 81/08</p>
+            </div>
+
+            <div class="p-6">
+                <div class="flex gap-4 mb-4">
+                    <img id="view-foto" src="https://via.placeholder.com/150" class="w-24 h-32 object-cover rounded-md border-2 border-gray-200 shadow-sm">
+                    <div class="flex-1">
+                        <p class="text-[10px] text-gray-500 uppercase">Lavoratore</p>
+                        <p id="view-nome" class="font-bold text-lg leading-tight text-gray-800">NOME COGNOME</p>
+                        <p class="text-[10px] text-gray-500 mt-2 uppercase">Nato il</p>
+                        <p id="view-nascita" class="font-semibold text-sm text-gray-700">-</p>
+                        <p class="text-[10px] text-gray-500 mt-2 uppercase">Assunto il</p>
+                        <p id="view-assunzione" class="font-semibold text-sm text-gray-700">-</p>
+                    </div>
+                </div>
+
+                <div class="border-t border-b border-gray-100 py-3 mb-4">
+                    <p class="text-[10px] text-gray-500 uppercase">Mansione / Qualifica</p>
+                    <p id="view-mansione" class="font-bold text-gray-700 italic">MANSIONE</p>
+                </div>
+
+                <div id="subappalto-box" class="hidden mb-4 p-2 bg-orange-50 border border-orange-200 rounded text-[10px]">
+                    <span class="font-bold text-orange-700 uppercase italic">Autorizzazione Subappalto:</span>
+                    <p id="view-subappalto" class="text-gray-700"></p>
+                </div>
+
+                <div class="flex justify-center items-center flex-col">
+                    <div id="qrcode" class="mb-2"></div>
+                    <p class="text-[8px] text-gray-400">Verifica Digitale</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="w-full max-w-sm mt-6 no-print">
+            <a id="view-drive" href="#" target="_blank" class="block w-full bg-green-700 text-white text-center py-4 rounded-xl font-bold shadow-md hover:bg-green-800 transition">
+                📂 DOCUMENTAZIONE SICUREZZA
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Simulazione Database Locale (per questo test)
+        let workerData = {};
+
+        function checkAccess() {
+            const cf = document.getElementById('cf-input').value.toUpperCase();
+            if (cf === "ADMIN123") {
+                showSection('admin-section');
+            } else if (workerData.cf === cf) {
+                renderTesserino(workerData);
+            } else {
+                alert("Codice Fiscale non trovato. Per il primo inserimento accedi come ADMIN123.");
+            }
+        }
+
+        function saveAndPreview() {
+            workerData = {
+                nome: document.getElementById('adm-nome').value,
+                cf: document.getElementById('adm-cf').value.toUpperCase(),
+                nascita: document.getElementById('adm-nascita').value,
+                datore: document.getElementById('adm-datore').value,
+                mansione: document.getElementById('adm-mansione').value,
+                assunzione: document.getElementById('adm-assunzione').value,
+                subappalto: document.getElementById('adm-subappalto').value,
+                drive: document.getElementById('adm-drive').value,
+                foto: document.getElementById('adm-foto').value || 'https://via.placeholder.com/150'
+            };
+
+            if(!workerData.nome || !workerData.cf) return alert("Inserisci almeno Nome e CF");
+            renderTesserino(workerData);
+        }
+
+        function renderTesserino(data) {
+            document.getElementById('view-datore').innerText = data.datore;
+            document.getElementById('view-nome').innerText = data.nome;
+            document.getElementById('view-nascita').innerText = data.nascita;
+            document.getElementById('view-mansione').innerText = data.mansione;
+            document.getElementById('view-assunzione').innerText = data.assunzione;
+            document.getElementById('view-foto').src = data.foto;
+            document.getElementById('view-drive').href = data.drive;
+
+            if(data.subappalto) {
+                document.getElementById('subappalto-box').classList.remove('hidden');
+                document.getElementById('view-subappalto').innerText = data.subappalto;
+            }
+
+            // Genera QR Code (punta a se stesso con CF in query)
+            document.getElementById('qrcode').innerHTML = "";
+            new QRCode(document.getElementById("qrcode"), {
+                text: window.location.href + "?user=" + data.cf,
+                width: 100,
+                height: 100
+            });
+
+            showSection('tesserino-section');
+        }
+
+        function showSection(id) {
+            document.getElementById('login-section').classList.add('hidden');
+            document.getElementById('admin-section').classList.add('hidden');
+            document.getElementById('tesserino-section').classList.add('hidden');
+            document.getElementById(id).classList.remove('hidden');
+        }
+
+        function downloadPDF() {
+            const element = document.getElementById('tesserino-card');
+            const opt = {
+                margin: 0.5,
+                filename: 'Tesserino_' + workerData.nome + '.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 3 },
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
+    </script>
+</body>
+</html>
