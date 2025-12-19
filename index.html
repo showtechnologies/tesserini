@@ -209,7 +209,6 @@
             canvas.width = 600; canvas.height = 600;
             canvas.getContext('2d').drawImage(video, 0, 0, 600, 600);
             
-            // Applica la compressione aggressiva prima di salvare l'anteprima
             processImage(canvas.toDataURL('image/jpeg'), (compressed) => {
                 currentPhotoBase64 = compressed;
                 document.getElementById('photo-preview').src = compressed;
@@ -242,16 +241,13 @@
                 return;
             }
             try {
-                // Forziamo il bypass della cache per vedere subito le modifiche
                 const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/lavoratori.json?nocache=${Date.now()}`;
                 const res = await fetch(url);
                 const data = await res.json();
-                
-                // Decodifica Unicode per supportare accenti e caratteri speciali
                 const lavoratori = JSON.parse(decodeUnicode(data.content));
                 const user = lavoratori.find(l => l.cf === cf);
                 if(user) showTesserino(user); else alert("Non trovato.");
-            } catch (e) { alert("Errore connessione database."); }
+            } catch (e) { alert("Errore connessione."); }
         }
 
         function showTesserino(data) {
@@ -290,6 +286,7 @@
 
         function switchQR() {
             if (!currentWorkerData) return;
+            const label = document.getElementById('qr-label');
             if (qrState === "badge") {
                 if (!currentWorkerData.drive || currentWorkerData.drive === "#") {
                     alert("Nessun link documenti impostato.");
@@ -297,13 +294,13 @@
                 }
                 qrState = "docs";
                 generateQR(currentWorkerData.drive);
-                document.getElementById('qr-label').innerText = "Link: Documenti Sicurezza";
-                document.getElementById('qr-label').style.color = "#f59e0b";
+                label.innerText = "Link: Documenti Sicurezza";
+                label.style.color = "#f59e0b";
             } else {
                 qrState = "badge";
                 generateQR(window.location.origin + window.location.pathname + "?id=" + currentWorkerData.cf);
-                document.getElementById('qr-label').innerText = "Link: Tesserino Digitale";
-                document.getElementById('qr-label').style.color = "#3b82f6";
+                label.innerText = "Link: Tesserino Digitale";
+                label.style.color = "#3b82f6";
             }
         }
 
