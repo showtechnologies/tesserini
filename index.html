@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Show Technologies - Smart Badge v3</title>
+    <title>Show Technologies - Smart Badge v4</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -21,10 +21,8 @@
             background: linear-gradient(180deg, #1e3a8a 0%, #1d4ed8 100%);
         }
         .pdf-wrapper {
-            margin: 0;
-            padding: 0;
-            line-height: 0;
-            background: white;
+            margin: 0; padding: 0;
+            background: white; line-height: 0;
         }
         @media print { .no-print { display: none !important; } }
     </style>
@@ -67,7 +65,7 @@
                         <button onclick="toggleCamera()" id="btn-camera" class="flex-1 bg-slate-800 text-white py-3 rounded-xl text-xs font-bold uppercase tracking-widest">📸 Camera</button>
                         <button onclick="takePhoto()" id="btn-take-photo" class="flex-1 bg-green-600 text-white py-3 rounded-xl text-xs font-bold uppercase tracking-widest hidden">Scatta</button>
                     </div>
-                    <input type="file" onchange="handleFileUpload(event)" class="mt-4 text-[10px] w-full text-center">
+                    <input type="file" id="file-input" onchange="handleFileUpload(event)" class="mt-4 text-[10px] w-full text-center">
                     <canvas id="photo-canvas" style="display: none;"></canvas>
                 </div>
 
@@ -75,8 +73,8 @@
                     <input type="text" id="adm-nome" placeholder="NOME E COGNOME" class="w-full p-4 bg-slate-50 rounded-2xl uppercase font-bold text-sm outline-none">
                     <input type="text" id="adm-cf" placeholder="CODICE FISCALE" class="w-full p-4 bg-slate-50 rounded-2xl uppercase font-mono tracking-widest text-sm outline-none">
                     <div class="grid grid-cols-2 gap-2 text-[10px] font-bold text-slate-400">
-                        <div class="bg-slate-50 p-2 rounded-2xl"><label class="ml-2">Nascita</label><input type="date" id="adm-nascita" class="w-full bg-transparent p-1 text-slate-800 text-sm outline-none"></div>
-                        <div class="bg-slate-50 p-2 rounded-2xl"><label class="ml-2">Assunzione</label><input type="date" id="adm-assunzione" class="w-full bg-transparent p-1 text-slate-800 text-sm outline-none"></div>
+                        <div class="bg-slate-50 p-2 rounded-2xl"><label class="ml-2 uppercase">Nascita</label><input type="date" id="adm-nascita" class="w-full bg-transparent p-1 text-slate-800 text-sm outline-none"></div>
+                        <div class="bg-slate-50 p-2 rounded-2xl"><label class="ml-2 uppercase">Assunzione</label><input type="date" id="adm-assunzione" class="w-full bg-transparent p-1 text-slate-800 text-sm outline-none"></div>
                     </div>
                     <div class="bg-blue-50 p-4 rounded-2xl space-y-2 border border-blue-100">
                         <input type="text" id="adm-datore" placeholder="NOME SOCIETÀ" class="w-full p-2 rounded-lg uppercase text-xs font-black outline-none border border-blue-200">
@@ -97,33 +95,27 @@
         <div id="tesserino-print" class="shadow-2xl">
             <div class="header-blue p-5 text-center text-white shrink-0 min-h-[90px] flex flex-col justify-center">
                 <h2 id="view-datore" class="font-black text-md uppercase tracking-tight leading-tight">NOME SOCIETÀ</h2>
-                <p id="view-indirizzo" class="text-[8px] font-bold opacity-80 uppercase tracking-widest leading-tight mt-1 px-4 text-center">Indirizzo Sede Legale</p>
+                <p id="view-indirizzo" class="text-[8px] font-bold opacity-80 uppercase tracking-widest leading-tight mt-1 px-4 text-center italic">Indirizzo Sede Legale</p>
             </div>
             
             <div class="p-5 flex-1 flex flex-col items-center bg-white text-center">
-                <div class="mb-4">
+                <div class="mb-4 pt-2">
                     <img id="view-foto" src="" class="w-32 h-32 object-cover rounded-[1.5rem] border-[3px] border-slate-100 shadow-lg bg-slate-100 mx-auto">
                 </div>
                 
                 <div class="mb-4 w-full px-2">
                     <span class="text-[9px] font-black text-blue-600 uppercase tracking-widest block leading-none">Lavoratore Autorizzato</span>
                     <h3 id="view-nome" class="font-black text-xl uppercase text-slate-900 leading-tight">NOME COGNOME</h3>
-                    <p id="view-cf" class="text-[10px] font-mono text-slate-500 uppercase tracking-widest mt-1 border-t border-slate-50 pt-1">CF: -</p>
+                    <p id="view-cf-display" class="text-[9px] font-mono text-slate-400 uppercase tracking-widest mt-1 border-t border-slate-50 pt-1"></p>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3 w-full mb-4 border-y border-slate-100 py-3 text-left px-2">
-                    <div>
-                        <span class="text-[7px] text-slate-400 font-black uppercase block">Nascita</span>
-                        <p id="view-nascita" class="font-bold text-slate-800 text-[10px] uppercase">-</p>
-                    </div>
-                    <div class="text-right">
-                        <span class="text-[7px] text-slate-400 font-black uppercase block">Assunzione</span>
-                        <p id="view-assunzione" class="font-bold text-slate-800 text-[10px] uppercase">-</p>
-                    </div>
+                    <div><span class="text-[7px] text-slate-400 font-black uppercase block">Nascita</span><p id="view-nascita" class="font-bold text-slate-800 text-[10px] uppercase">-</p></div>
+                    <div class="text-right"><span class="text-[7px] text-slate-400 font-black uppercase block">Assunzione</span><p id="view-assunzione" class="font-bold text-slate-800 text-[10px] uppercase">-</p></div>
                 </div>
 
                 <div class="w-full mb-4 bg-slate-50 p-3 rounded-2xl border border-slate-100">
-                    <span class="text-[7px] text-slate-400 font-black uppercase block italic">Qualifica</span>
+                    <span class="text-[7px] text-slate-400 font-black uppercase block italic leading-none mb-1">Qualifica</span>
                     <p id="view-mansione" class="font-black text-slate-800 text-[11px] uppercase tracking-wide">-</p>
                 </div>
 
@@ -135,33 +127,46 @@
                 <div class="mt-auto flex flex-col items-center w-full pb-2">
                     <div id="qrcode" onclick="switchQR()" class="p-2 bg-white border border-slate-100 rounded-xl shadow-inner mb-1 cursor-pointer"></div>
                     <p id="qr-label" class="text-[8px] text-blue-500 font-black uppercase tracking-widest mb-3">Link: Tesserino Digitale</p>
-                    
                     <div class="flex items-center gap-2 bg-green-50 px-4 py-1.5 rounded-full border border-green-200">
                         <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                        <span class="text-[8px] text-green-700 font-black uppercase tracking-widest">Verified Badge</span>
+                        <span class="text-[8px] text-green-700 font-black uppercase tracking-widest">Verified Digital ID</span>
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="flex flex-col gap-4 w-full no-print pb-10 mt-10">
-            <button onclick="downloadPDF()" class="w-full bg-red-600 text-white py-5 rounded-3xl font-black uppercase tracking-widest shadow-xl text-xs active:scale-95 transition">Scarica PDF per Stampa</button>
+            <button onclick="downloadPDF()" class="w-full bg-red-600 text-white py-5 rounded-3xl font-black uppercase tracking-widest shadow-xl text-xs">Scarica PDF per Stampa</button>
             <a id="view-drive" href="#" target="_blank" class="w-full bg-white text-slate-900 py-5 rounded-3xl font-black text-center uppercase tracking-widest shadow-xl text-xs border border-slate-200">📂 Documentazione Drive</a>
-            <button onclick="location.reload()" class="text-slate-500 font-bold py-2 text-[10px] uppercase tracking-widest text-center">Indietro</button>
+            <button onclick="location.reload()" class="text-slate-500 font-bold py-2 text-[10px] uppercase tracking-widest text-center">Esci</button>
         </div>
     </div>
 
     <script>
-        // --- COMPRESSIONE IMMAGINE ---
-        function compressImage(imgElement, callback) {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            const maxWidth = 400;
-            const scale = maxWidth / imgElement.naturalWidth;
-            canvas.width = maxWidth;
-            canvas.height = imgElement.naturalHeight * scale;
-            ctx.drawImage(imgElement, 0, 0, canvas.width, canvas.height);
-            callback(canvas.toDataURL('image/jpeg', 0.7));
+        let currentPhotoBase64 = '';
+        let stream;
+
+        // --- COMPRESSIONE IMMAGINE (RISOLVE ERRORE TOKEN) ---
+        function processImage(src, callback) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                const MAX_WIDTH = 400; // Ridimensiona a 400px per sicurezza
+                let width = img.width;
+                let height = img.height;
+
+                if (width > MAX_WIDTH) {
+                    height *= MAX_WIDTH / width;
+                    width = MAX_WIDTH;
+                }
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                // Comprimi al 70% della qualità
+                callback(canvas.toDataURL('image/jpeg', 0.7));
+            };
+            img.src = src;
         }
 
         async function toggleCamera() {
@@ -186,28 +191,20 @@
             const canvas = document.createElement('canvas');
             canvas.width = 500; canvas.height = 500;
             canvas.getContext('2d').drawImage(video, 0, 0, 500, 500);
-            const tempImg = new Image();
-            tempImg.onload = () => {
-                compressImage(tempImg, (compressed) => {
-                    currentPhotoBase64 = compressed;
-                    document.getElementById('photo-preview').src = compressed;
-                    toggleCamera();
-                });
-            };
-            tempImg.src = canvas.toDataURL('image/jpeg');
+            processImage(canvas.toDataURL('image/jpeg'), (compressed) => {
+                currentPhotoBase64 = compressed;
+                document.getElementById('photo-preview').src = compressed;
+                toggleCamera();
+            });
         }
 
         function handleFileUpload(e) {
             const reader = new FileReader();
             reader.onload = (ev) => {
-                const tempImg = new Image();
-                tempImg.onload = () => {
-                    compressImage(tempImg, (compressed) => {
-                        currentPhotoBase64 = compressed;
-                        document.getElementById('photo-preview').src = compressed;
-                    });
-                };
-                tempImg.src = ev.target.result;
+                processImage(ev.target.result, (compressed) => {
+                    currentPhotoBase64 = compressed;
+                    document.getElementById('photo-preview').src = compressed;
+                });
             };
             reader.readAsDataURL(e.target.files[0]);
         }
@@ -232,7 +229,7 @@
                 const lavoratori = JSON.parse(decodeURIComponent(escape(atob(data.content))));
                 const user = lavoratori.find(l => l.cf === cf);
                 if(user) showTesserino(user); else alert("Non trovato.");
-            } catch (e) { alert("Errore connessione."); }
+            } catch (e) { alert("Errore connessione database."); }
         }
 
         function showTesserino(data) {
@@ -240,7 +237,7 @@
             document.getElementById('view-datore').innerText = data.datore;
             document.getElementById('view-indirizzo').innerText = data.indirizzo || "";
             document.getElementById('view-nome').innerText = data.nome;
-            document.getElementById('view-cf').innerText = "CF: " + data.cf;
+            document.getElementById('view-cf-display').innerText = "CF: " + data.cf;
             document.getElementById('view-nascita').innerText = data.nascita;
             document.getElementById('view-assunzione').innerText = data.assunzione;
             document.getElementById('view-mansione').innerText = data.mansione;
@@ -251,10 +248,7 @@
                 document.getElementById('view-sub').innerText = data.subappalto;
             } else { document.getElementById('box-sub').classList.add('hidden'); }
             
-            qrState = "badge";
             generateQR(window.location.origin + window.location.pathname + "?id=" + data.cf);
-            document.getElementById('qr-label').innerText = "Link: Tesserino Digitale";
-            
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('card-view').classList.remove('hidden');
             window.scrollTo(0,0);
@@ -269,7 +263,7 @@
             if (!currentWorkerData) return;
             if (qrState === "badge") {
                 if (!currentWorkerData.drive || currentWorkerData.drive === "#") {
-                    alert("Nessun link documenti impostato."); return;
+                    alert("Link documenti non presente."); return;
                 }
                 qrState = "docs";
                 generateQR(currentWorkerData.drive);
@@ -305,7 +299,7 @@
                     currentPhotoBase64 = user.foto;
                     alert("Dati caricati!");
                 }
-            } catch (e) { alert("Errore ricerca."); }
+            } catch (e) { alert("Lavoratore non trovato."); }
         }
 
         async function saveToGitHub() {
@@ -330,13 +324,18 @@
                 let lavoratori = JSON.parse(decodeURIComponent(escape(atob(fileData.content))));
                 const idx = lavoratori.findIndex(l => l.cf === nuovo.cf);
                 if(idx > -1) lavoratori[idx] = nuovo; else lavoratori.push(nuovo);
+                
                 await fetch(url, {
                     method: "PUT",
                     headers: { "Authorization": `token ${GITHUB_TOKEN}`, "Content-Type": "application/json" },
-                    body: JSON.stringify({ message: "Update", content: btoa(unescape(encodeURIComponent(JSON.stringify(lavoratori, null, 2)))), sha: fileData.sha })
+                    body: JSON.stringify({
+                        message: "Update worker " + nuovo.cf,
+                        content: btoa(unescape(encodeURIComponent(JSON.stringify(lavoratori, null, 2)))),
+                        sha: fileData.sha
+                    })
                 });
-                alert("Badge registrato!"); location.reload();
-            } catch (e) { alert("Errore. Verifica Token o connessione."); btn.disabled = false; btn.innerText = "Registra Badge"; }
+                alert("Salvataggio completato!"); location.reload();
+            } catch (e) { alert("Errore durante il salvataggio."); btn.disabled = false; btn.innerText = "Registra Badge"; }
         }
 
         function downloadPDF() {
@@ -344,21 +343,20 @@
             const nomeLavoratore = document.getElementById('view-nome').innerText;
             const printWrapper = document.createElement('div');
             printWrapper.className = "pdf-wrapper";
-            printWrapper.style.width = "210mm"; printWrapper.style.height = "297mm";
-            printWrapper.style.padding = "10mm";
             
             const clone = badge.cloneNode(true);
-            clone.style.width = "75mm"; clone.style.height = "auto";
-            clone.style.boxShadow = "none"; clone.style.border = "1px solid #ccc";
+            clone.style.width = "85mm";
+            clone.style.height = "auto";
+            clone.style.boxShadow = "none";
+            clone.style.border = "1px solid #ddd";
             printWrapper.appendChild(clone);
 
             const opt = {
-                margin: 0,
+                margin: 10,
                 filename: `Badge_${nomeLavoratore}.pdf`,
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: { scale: 3, useCORS: true, scrollY: 0 },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                pagebreak: { mode: ['avoid-all'] }
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
             html2pdf().from(printWrapper).set(opt).save();
         }
