@@ -366,109 +366,118 @@
         }
 
         function downloadPDF() {
-                    const data = currentWorkerData;
-                    const nomeFile = `Badge_${data.nome.replace(/\s+/g, '_')}.pdf`;
+            const data = currentWorkerData;
+            const nomeFile = `Badge_${data.nome.replace(/\s+/g, '_')}.pdf`;
 
-                    const printArea = document.createElement('div');
-                    printArea.style.position = 'absolute';
-                    printArea.style.left = '-9999px';
-                    printArea.style.top = '0';
-                    
-                    const a4 = document.createElement('div');
-                    a4.style.width = "210mm";
-                    a4.style.height = "297mm";
-                    a4.style.padding = "20mm";
-                    a4.style.background = "white";
+            const printArea = document.createElement('div');
+            printArea.style.position = 'absolute';
+            printArea.style.left = '-9999px';
+            printArea.style.top = '0';
+            
+            const a4 = document.createElement('div');
+            a4.style.width = "210mm";
+            a4.style.height = "297mm";
+            a4.style.padding = "20mm";
+            a4.style.background = "white";
 
-                    const badgeWrapper = document.createElement('div');
-                    badgeWrapper.style.width = "85.6mm";
-                    badgeWrapper.style.border = "0.1mm solid #000";
-                    badgeWrapper.style.display = "flex";
-                    badgeWrapper.style.flexDirection = "column";
+            const badgeWrapper = document.createElement('div');
+            badgeWrapper.style.width = "85.6mm";
+            badgeWrapper.style.border = "0.1mm solid #000";
+            badgeWrapper.style.display = "flex";
+            badgeWrapper.style.flexDirection = "column";
 
-                    // --- RETRO (PARTE SUPERIORE - RUOTATA DI 180°) ---
-                    const retro = document.createElement('div');
-                    retro.style.width = "85.6mm";
-                    retro.style.height = "53.98mm";
-                    retro.style.transform = "rotate(180deg)"; // Sottosopra per la piega
-                    retro.style.display = "flex";
-                    retro.style.flexDirection = "column";
-                    retro.style.borderBottom = "0.1mm dashed #000"; // Linea di piega
-                    retro.style.background = "#ffffff";
-                    
-                    retro.innerHTML = `
-                        <div style="flex:1; display:flex; justify-content:space-around; align-items:center; padding:2mm">
-                            <div style="text-align:center">
-                                <div style="font-size:5pt; font-weight:bold; margin-bottom:1mm; color:#666">${data.cf}</div>
-                                <div id="pdf-qr-badge" style="display:inline-block; padding:1mm; border:0.1mm solid #eee"></div>
-                                <div style="font-size:4pt; font-weight:900; color:#1e3a8a; margin-top:1mm">VERIFICA DIGITALE</div>
-                            </div>
-                            <div style="text-align:center">
-                                <div style="font-size:5pt; font-weight:bold; margin-bottom:1mm; color:#666">${data.datore}</div>
-                                <div id="pdf-qr-docs" style="display:inline-block; padding:1mm; border:0.1mm solid #eee"></div>
-                                <div style="font-size:4pt; font-weight:900; color:#b45309; margin-top:1mm">DOC. SICUREZZA</div>
-                            </div>
+            // --- RETRO (PARTE SUPERIORE - RUOTATA DI 180° PER LA PIEGA) ---
+            const retro = document.createElement('div');
+            retro.style.width = "85.6mm";
+            retro.style.height = "53.98mm";
+            retro.style.transform = "rotate(180deg)";
+            retro.style.display = "flex";
+            retro.style.flexDirection = "column";
+            retro.style.borderBottom = "0.1mm dashed #000";
+            retro.style.background = "#ffffff";
+            
+            retro.innerHTML = `
+                <div style="flex:1; display:flex; justify-content:space-around; align-items:center; padding:2mm">
+                    <div style="text-align:center">
+                        <div style="font-size:6pt; font-weight:bold; margin-bottom:1.5mm; color:#333; font-family:monospace">${data.cf}</div>
+                        <div id="pdf-qr-badge" style="display:inline-block; padding:1.5mm; border:0.2mm solid #eee; background:white"></div>
+                        <div style="font-size:4.5pt; font-weight:900; color:#1e3a8a; margin-top:1.5mm">VERIFICA DIGITALE</div>
+                    </div>
+                    <div style="text-align:center">
+                        <div style="font-size:6pt; font-weight:bold; margin-bottom:1.5mm; color:#333">${data.datore}</div>
+                        <div id="pdf-qr-docs" style="display:inline-block; padding:1.5mm; border:0.2mm solid #eee; background:white"></div>
+                        <div style="font-size:4.5pt; font-weight:900; color:#b45309; margin-top:1.5mm">DOC. SICUREZZA</div>
+                    </div>
+                </div>
+                <div style="font-size:4pt; text-align:center; padding-bottom:1mm; color:#999">TAGLIARE LUNGO IL BORDO NERO E PIEGARE QUI</div>
+            `;
+
+            // --- FRONTE (PARTE INFERIORE) ---
+            const fronte = document.createElement('div');
+            fronte.style.width = "85.6mm";
+            fronte.style.height = "53.98mm";
+            fronte.style.background = "#ffffff";
+            fronte.style.display = "flex";
+            fronte.style.flexDirection = "column";
+            
+            fronte.innerHTML = `
+                <div class="header-blue" style="height:14mm; display:flex; flex-direction:column; justify-content:center; text-align:center; color:white; padding: 0 2mm">
+                    <div style="font-size:9pt; font-weight:900; line-height:1">${data.datore}</div>
+                    <div style="font-size:5pt; opacity:0.9; margin-top:1mm; text-transform:uppercase">${data.indirizzo || ''}</div>
+                </div>
+                <div style="display:flex; padding:3mm; align-items:flex-start; flex:1">
+                    <img src="${data.foto}" style="width:26mm; height:32mm; object-fit:cover; border-radius:2mm; border:0.5mm solid #eee">
+                    <div style="flex:1; padding-left:4mm; display:flex; flex-direction:column; gap:1.5mm">
+                        <div style="font-size:11pt; font-weight:900; color:#111; line-height:1.1">${data.nome}</div>
+                        <div>
+                            <span style="font-size:7pt; font-weight:800; color:#2563eb; text-transform:uppercase">${data.mansione}</span>
                         </div>
-                        <div style="font-size:4pt; text-align:center; padding-bottom:2mm; color:#aaa">PIEGARE LUNGO LA LINEA TRATTEGGIATA</div>
-                    `;
-
-                    // --- FRONTE (PARTE INFERIORE) ---
-                    const fronte = document.createElement('div');
-                    fronte.style.width = "85.6mm";
-                    fronte.style.height = "53.98mm";
-                    fronte.style.background = "#ffffff";
-                    fronte.innerHTML = `
-                        <div class="header-blue" style="height:12mm; display:flex; flex-direction:column; justify-content:center; text-align:center; color:white">
-                            <div style="font-size:9pt; font-weight:900;">${data.datore}</div>
-                            <div style="font-size:5pt; opacity:0.8; letter-spacing:1px">TESSERINO DI RICONOSCIMENTO</div>
+                        <div>
+                            <span style="font-size:7pt; font-weight:800; color:#111; font-family:monospace">CF: ${data.cf}</span>
                         </div>
-                        <div style="display:flex; padding:3mm; align-items:flex-start;">
-                            <img src="${data.foto}" style="width:26mm; height:32mm; object-fit:cover; border-radius:2mm; border:0.5mm solid #eee">
-                            <div style="flex:1; padding-left:4mm; display:flex; flex-direction:column; gap:1mm">
-                                <div style="font-size:11pt; font-weight:900; color:#111;">${data.nome}</div>
-                                <div style="font-size:7pt; font-weight:800; color:#2563eb; text-transform:uppercase">${data.mansione}</div>
-                                <div style="font-size:5pt; color:#666; border-top:0.1mm solid #eee; padding-top:1mm; margin-top:1mm">CF: ${data.cf}</div>
-                                <div style="display:flex; gap:3mm; margin-top:1mm">
-                                    <div><span style="font-size:4pt; color:#999;">NATO IL</span><br><span style="font-size:6pt; font-weight:bold">${data.nascita}</span></div>
-                                    <div><span style="font-size:4pt; color:#999;">ASSUNTO IL</span><br><span style="font-size:6pt; font-weight:bold">${data.assunzione}</span></div>
-                                </div>
-                                <div style="font-size:4pt; color:#aaa; margin-top:auto">Ai sensi del D.Lgs. 81/08</div>
-                            </div>
+                        <div style="display:flex; gap:4mm; margin-top:1mm">
+                            <div><span style="font-size:4pt; color:#999; font-weight:bold">NATO IL</span><br><span style="font-size:6pt; font-weight:bold">${data.nascita}</span></div>
+                            <div><span style="font-size:4pt; color:#999; font-weight:bold">ASSUNTO IL</span><br><span style="font-size:6pt; font-weight:bold">${data.assunzione}</span></div>
                         </div>
-                    `;
+                        <div style="font-size:4.5pt; color:#666; margin-top:auto; font-weight:bold; border-top:0.1mm solid #eee; padding-top:1mm">
+                            ${data.datore} - Ai sensi del D.Lgs. 81/08
+                        </div>
+                    </div>
+                </div>
+            `;
 
-                    badgeWrapper.appendChild(retro);
-                    badgeWrapper.appendChild(fronte);
-                    a4.appendChild(badgeWrapper);
-                    printArea.appendChild(a4);
-                    document.body.appendChild(printArea);
+            badgeWrapper.appendChild(retro);
+            badgeWrapper.appendChild(fronte);
+            a4.appendChild(badgeWrapper);
+            printArea.appendChild(a4);
+            document.body.appendChild(printArea);
 
-                    // Generazione QR (Badge)
-                    new QRCode(retro.querySelector("#pdf-qr-badge"), {
-                        text: window.location.origin + window.location.pathname + "?id=" + data.cf,
-                        width: 60, height: 60
-                    });
+            // Generazione QR 1: Badge
+            new QRCode(retro.querySelector("#pdf-qr-badge"), {
+                text: window.location.origin + window.location.pathname + "?id=" + data.cf,
+                width: 60, height: 60
+            });
 
-                    // Generazione QR (Documenti)
-                    const docLink = (data.drive && data.drive !== "#") ? data.drive : (window.location.origin + window.location.pathname + "?id=" + data.cf);
-                    new QRCode(retro.querySelector("#pdf-qr-docs"), {
-                        text: docLink,
-                        width: 60, height: 60
-                    });
+            // Generazione QR 2: Documenti
+            const docLink = (data.drive && data.drive !== "#") ? data.drive : (window.location.origin + window.location.pathname + "?id=" + data.cf);
+            new QRCode(retro.querySelector("#pdf-qr-docs"), {
+                text: docLink,
+                width: 60, height: 60
+            });
 
-                    setTimeout(() => {
-                        const opt = {
-                            margin: 0,
-                            filename: nomeFile,
-                            image: { type: 'jpeg', quality: 1 },
-                            html2canvas: { scale: 4, useCORS: true, letterRendering: true },
-                            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-                        };
-                        html2pdf().from(a4).set(opt).save().then(() => {
-                            document.body.removeChild(printArea);
-                        });
-                    }, 800);
-                }
+            setTimeout(() => {
+                const opt = {
+                    margin: 0,
+                    filename: nomeFile,
+                    image: { type: 'jpeg', quality: 1 },
+                    html2canvas: { scale: 4, useCORS: true, letterRendering: true },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+                html2pdf().from(a4).set(opt).save().then(() => {
+                    document.body.removeChild(printArea);
+                });
+            }, 800);
+        }
     </script>
 </body>
 </html>
