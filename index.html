@@ -108,7 +108,6 @@
                 const srcH = img.height;
                 const srcRatio = srcW / srcH;
 
-                // scegli dimensione canvas (pixel) mantenendo 28:34
                 const targetW = 400;
                 const targetH = Math.round(targetW / targetRatio); // ≈ 486
 
@@ -163,7 +162,8 @@
         <div class="bg-white p-6 rounded-3xl shadow-xl border-t-8 border-blue-700">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-xl font-black text-slate-800 uppercase italic">Admin Panel</h2>
-                <button onclick="caricaDatiLavoratore()"
+                <button onclick="caricaDatiLavoratore()
+                "
                         class="bg-slate-100 text-blue-700 px-4 py-2 rounded-xl text-[10px] font-black border border-blue-100 uppercase tracking-widest transition hover:bg-slate-200">
                     🔍 Cerca CF
                 </button>
@@ -367,7 +367,6 @@
                     video.classList.remove('hidden');
                     btnTake.classList.remove('hidden');
                     btn.innerText = "Spegni";
-                    // applica eventuale specchio già attivo
                     video.style.transform = mirrorPreview ? 'scaleX(-1)' : 'scaleX(1)';
                 } catch (e) {
                     alert("Camera negata. Controlla i permessi del browser.");
@@ -406,7 +405,6 @@
             canvas.height = ch;
             const ctx = canvas.getContext('2d');
 
-            // Disegno senza specchio, anche se l'anteprima è specchiata
             ctx.drawImage(video, 0, 0, cw, ch);
 
             processImage(canvas.toDataURL('image/jpeg'), (compressed) => {
@@ -434,7 +432,6 @@
             const cf = document.getElementById('cf-login').value.trim().toUpperCase();
             if (!cf) return;
 
-            // Modalità ADMIN
             if (cf === "ADMIN123") {
                 const pass = prompt("GITHUB TOKEN:");
                 if (pass && pass.startsWith("github_pat_")) {
@@ -448,7 +445,6 @@
                 return;
             }
 
-            // Modalità LAVORATORE
             try {
                 const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/lavoratori.json?nocache=${Date.now()}`;
                 const res = await fetch(url);
@@ -619,21 +615,25 @@
 
             const data = currentWorkerData;
 
-            // 1) Prima prepariamo la foto croppata col giusto rapporto
             preparePdfPhoto(data.foto, (pdfPhoto) => {
                 const photoSrc = pdfPhoto || data.foto || '';
 
                 const nomeFile = `Badge_${data.nome.replace(/\s+/g, '_')}.pdf`;
 
+                // *** FIX MOBILE: container invisibile ma DENTRO la viewport ***
                 const printArea = document.createElement('div');
-                printArea.style.position = 'absolute';
-                printArea.style.left = '-9999px';
-                printArea.style.top = '0';
-                printArea.style.width = "210mm";
+                printArea.style.position = 'fixed';
+                printArea.style.inset = '0';
+                printArea.style.zIndex = '-1';
+                printArea.style.opacity = '0';
+                printArea.style.pointerEvents = 'none';
 
                 const a4 = document.createElement('div');
                 a4.style.width = "210mm";
+                a4.style.minHeight = "297mm";
+                a4.style.margin = "0 auto";
                 a4.style.padding = "20mm";
+                a4.style.boxSizing = "border-box";
                 a4.style.background = "white";
 
                 const badgeWrapper = document.createElement('div');
@@ -642,6 +642,7 @@
                 badgeWrapper.style.boxSizing = "border-box";
                 badgeWrapper.style.fontFamily = "Arial, sans-serif";
                 badgeWrapper.style.lineHeight = "1.2";
+                badgeWrapper.style.margin = "0 auto"; // centrato in orizzontale
 
                 // RETRO
                 const retro = document.createElement('div');
@@ -670,7 +671,9 @@
                             <div style="font-size:5.5pt; font-weight:bold; color:#b45309; margin-top:2mm">DOC. SICUREZZA</div>
                         </div>
                     </div>
-                    <div style="font-size:4pt; text-align:center; color:#999; margin-bottom:1mm">Show Technologies™ Snc - P.IVA 01223430990/div>
+                    <div style="font-size:4pt; text-align:center; color:#999; margin-bottom:1mm">
+                        Show Technologies™ Snc - P.IVA 01223430990
+                    </div>
                 `;
 
                 // FRONTE
@@ -689,7 +692,6 @@
                     </div>
                     <div style="display:flex; padding:3mm; flex:1; position:relative;">
                         <div style="width:28mm; height:34mm; border:0.3mm solid #eee; border-radius:1.5mm; overflow:hidden; background:#f8f8f8">
-                            <!-- qui niente object-fit: la foto è già croppata col giusto rapporto -->
                             <img src="${photoSrc}" style="width:100%; height:100%;">
                         </div>
                         <div style="flex:1; padding-left:4mm; display:flex; flex-direction:column;">
@@ -709,7 +711,6 @@
                             </div>
                         </div>
                     </div>
-                    <!-- FOOTER A TUTTA LARGHEZZA, SOTTO FOTO + DATI -->
                     <div style="font-size:5.5pt; color:#333; font-weight:bold; border-top:0.2mm solid #ddd; padding:1.5mm 3mm 2mm 3mm; text-align:center; width:100%;">
                         ${data.datore} - Art. 18 D.Lgs. 81/08
                     </div>
