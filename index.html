@@ -373,13 +373,12 @@
             printArea.style.position = 'absolute';
             printArea.style.left = '-9999px';
             printArea.style.top = '0';
-            printArea.style.width = "210mm"; // Forza larghezza A4
+            printArea.style.width = "210mm";
             
             const a4 = document.createElement('div');
             a4.style.width = "210mm";
             a4.style.padding = "20mm";
             a4.style.background = "white";
-            a4.style.fontFamily = "sans-serif";
 
             // Contenitore esterno con bordo nero per il taglio
             const badgeWrapper = document.createElement('div');
@@ -387,6 +386,7 @@
             badgeWrapper.style.border = "0.2mm solid #000";
             badgeWrapper.style.display = "block";
             badgeWrapper.style.boxSizing = "border-box";
+            badgeWrapper.style.fontFamily = "Arial, sans-serif";
 
             // --- RETRO (PARTE SUPERIORE - RUOTATA) ---
             const retro = document.createElement('div');
@@ -396,19 +396,19 @@
             retro.style.display = "flex";
             retro.style.flexDirection = "column";
             retro.style.boxSizing = "border-box";
-            retro.style.borderBottom = "0.1mm dashed #000"; // Linea di piega interna
+            retro.style.borderBottom = "0.1mm dashed #000";
             
             retro.innerHTML = `
-                <div style="flex:1; display:flex; justify-content:space-around; align-items:center; padding:4mm">
-                    <div style="text-align:center">
+                <div style="flex:1; display:flex; justify-content:space-evenly; align-items:center; padding:2mm">
+                    <div style="text-align:center; width:45%">
                         <div style="font-size:7pt; font-weight:bold; margin-bottom:2mm; color:#333">${data.cf}</div>
-                        <div id="pdf-qr-badge" style="display:inline-block; padding:1mm; background:white; border:0.1mm solid #ccc"></div>
-                        <div style="font-size:5pt; font-weight:900; color:#1e3a8a; margin-top:2mm">VERSIONE DIGITALE</div>
+                        <div id="pdf-qr-badge" style="display:inline-block; padding:1.5mm; background:white; border:0.1mm solid #ccc; line-height:0"></div>
+                        <div style="font-size:5.5pt; font-weight:bold; color:#1e3a8a; margin-top:2mm">VERSIONE DIGITALE</div>
                     </div>
-                    <div style="text-align:center">
+                    <div style="text-align:center; width:45%">
                         <div style="font-size:7pt; font-weight:bold; margin-bottom:2mm; color:#333">${data.datore}</div>
-                        <div id="pdf-qr-docs" style="display:inline-block; padding:1mm; background:white; border:0.1mm solid #ccc"></div>
-                        <div style="font-size:5pt; font-weight:900; color:#b45309; margin-top:2mm">DOCUMENTI SICUREZZA</div>
+                        <div id="pdf-qr-docs" style="display:inline-block; padding:1.5mm; background:white; border:0.1mm solid #ccc; line-height:0"></div>
+                        <div style="font-size:5.5pt; font-weight:bold; color:#b45309; margin-top:2mm">DOC. SICUREZZA</div>
                     </div>
                 </div>
             `;
@@ -426,15 +426,15 @@
                     <div style="font-size:9pt; font-weight:bold; line-height:1.1">${data.datore}</div>
                     <div style="font-size:5.5pt; opacity:0.9; margin-top:1mm; text-transform:uppercase">${data.indirizzo || ''}</div>
                 </div>
-                <div style="display:flex; padding:3mm; flex:1; overflow:hidden">
+                <div style="display:flex; padding:3mm; flex:1; overflow:hidden; background:white">
                     <div style="width:28mm; height:34mm; border:0.3mm solid #eee; border-radius:1.5mm; overflow:hidden">
                         <img src="${data.foto}" style="width:100%; height:100%; object-fit:cover;">
                     </div>
-                    <div style="flex:1; padding-left:4mm; display:flex; flex-direction:column; justify-content:space-between">
+                    <div style="flex:1; padding-left:4mm; display:flex; flex-direction:column; justify-content:space-between; text-align:left">
                         <div>
-                            <div style="font-size:11pt; font-weight:bold; color:#000; line-height:1.2; margin-bottom:1mm">${data.nome}</div>
-                            <div style="font-size:7pt; font-weight:bold; color:#2563eb; text-transform:uppercase">${data.mansione}</div>
-                            <div style="font-size:7pt; font-weight:bold; color:#000; margin-top:1.5mm">CF: ${data.cf}</div>
+                            <div style="font-size:11pt; font-weight:bold; color:#000; line-height:1.1; margin-bottom:1mm">${data.nome}</div>
+                            <div style="font-size:7pt; font-weight:bold; color:#2563eb; text-transform:uppercase; margin-bottom:1mm">${data.mansione}</div>
+                            <div style="font-size:7pt; font-weight:bold; color:#000">CF: ${data.cf}</div>
                         </div>
                         
                         <div style="display:flex; gap:5mm">
@@ -442,8 +442,8 @@
                             <div><span style="font-size:4.5pt; color:#666; font-weight:bold">ASSUNTO IL</span><br><span style="font-size:6.5pt; font-weight:bold">${data.assunzione}</span></div>
                         </div>
 
-                        <div style="font-size:4.5pt; color:#444; font-weight:bold; border-top:0.1mm solid #ddd; padding-top:1mm">
-                            ${data.datore} - Ai sensi del D.Lgs. 81/08
+                        <div style="font-size:5pt; color:#333; font-weight:bold; border-top:0.1mm solid #ddd; padding-top:1.5mm; margin-top:1mm">
+                            ${data.datore} - Art. 18 D.Lgs. 81/08
                         </div>
                     </div>
                 </div>
@@ -453,44 +453,55 @@
             badgeWrapper.appendChild(fronte);
             a4.appendChild(badgeWrapper);
             
-            // ISTRUZIONI FUORI DAL TESSERINO
             const istruzioni = document.createElement('div');
             istruzioni.style.marginTop = "10mm";
             istruzioni.style.fontSize = "8pt";
             istruzioni.style.color = "#666";
-            istruzioni.innerHTML = "<b>ISTRUZIONI DI STAMPA:</b><br>1. Ritaglia lungo il bordo nero solido.<br>2. Piega a metà sulla linea tratteggiata.<br>3. Non adattare alla pagina in fase di stampa (usa dimensione reale).";
+            istruzioni.innerHTML = "<b>ISTRUZIONI DI STAMPA:</b><br>1. Ritaglia lungo il bordo nero solido.<br>2. Piega a metà sulla linea tratteggiata.<br>3. Usa dimensione reale (100%) in fase di stampa.";
             a4.appendChild(istruzioni);
 
             printArea.appendChild(a4);
             document.body.appendChild(printArea);
 
-            // Generazione QR ingranditi (width 75)
-            new QRCode(retro.querySelector("#pdf-qr-badge"), {
-                text: window.location.href,
-                width: 75, height: 75,
-                correctLevel: QRCode.CorrectLevel.H
-            });
+            // Funzione interna per generare QR come immagine per il PDF
+            const generateQRForPDF = (containerId, text) => {
+                const tempDiv = document.createElement('div');
+                new QRCode(tempDiv, {
+                    text: text,
+                    width: 80,
+                    height: 80,
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+                const qrImg = tempDiv.querySelector('img');
+                const qrCanvas = tempDiv.querySelector('canvas');
+                
+                // Prendiamo il contenuto dal canvas se l'immagine non è ancora pronta
+                const finalSrc = qrImg.src || qrCanvas.toDataURL();
+                const imgElement = document.createElement('img');
+                imgElement.src = finalSrc;
+                imgElement.style.width = "22mm";
+                imgElement.style.height = "22mm";
+                document.getElementById(containerId).appendChild(imgElement);
+            };
 
+            // Generazione effettiva dei QR
+            generateQRForPDF("pdf-qr-badge", window.location.href);
             const docLink = (data.drive && data.drive !== "#") ? data.drive : window.location.href;
-            new QRCode(retro.querySelector("#pdf-qr-docs"), {
-                text: docLink,
-                width: 75, height: 75,
-                correctLevel: QRCode.CorrectLevel.H
-            });
+            generateQRForPDF("pdf-qr-docs", docLink);
 
-            // Attesa per rendering QR e caricamento foto
+            // Attendiamo un secondo per garantire che le immagini QR siano caricate
             setTimeout(() => {
                 const opt = {
                     margin: 0,
                     filename: nomeFile,
                     image: { type: 'jpeg', quality: 1 },
-                    html2canvas: { scale: 3, useCORS: true, logging: false },
+                    html2canvas: { scale: 3, useCORS: true, letterRendering: true },
                     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
                 };
                 html2pdf().from(a4).set(opt).save().then(() => {
                     document.body.removeChild(printArea);
                 });
-            }, 1000);
+            }, 1200);
         }
     </script>
 </body>
