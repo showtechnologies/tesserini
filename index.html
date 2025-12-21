@@ -94,6 +94,53 @@
             };
             img.src = src;
         }
+
+        // CROP PER PDF: ritaglia la foto in rapporto 28:34 (centrale, tipo "cover")
+        function preparePdfPhoto(srcBase64, callback) {
+            if (!srcBase64) {
+                callback(null);
+                return;
+            }
+            const img = new Image();
+            img.onload = function() {
+                const targetRatio = 28 / 34; // larghezza/altezza
+                const srcW = img.width;
+                const srcH = img.height;
+                const srcRatio = srcW / srcH;
+
+                // scegli dimensione canvas (pixel) mantenendo 28:34
+                const targetW = 400;
+                const targetH = Math.round(targetW / targetRatio); // ≈ 486
+
+                const canvas = document.createElement('canvas');
+                canvas.width = targetW;
+                canvas.height = targetH;
+                const ctx = canvas.getContext('2d');
+
+                let drawW, drawH;
+                if (srcRatio > targetRatio) {
+                    // sorgente più larga: altezza piena, crop laterale
+                    drawH = targetH;
+                    drawW = Math.round(targetH * srcRatio);
+                } else {
+                    // sorgente più "stretta": larghezza piena, crop sopra/sotto
+                    drawW = targetW;
+                    drawH = Math.round(targetW / srcRatio);
+                }
+
+                const dx = Math.round((targetW - drawW) / 2);
+                const dy = Math.round((targetH - drawH) / 2);
+
+                ctx.drawImage(img, dx, dy, drawW, drawH);
+
+                const out = canvas.toDataURL('image/jpeg', 0.9);
+                callback(out);
+            };
+            img.onerror = function() {
+                callback(srcBase64); // fallback: usa originale
+            };
+            img.src = srcBase64;
+        }
     </script>
 
     <!-- LOGIN -->
@@ -343,7 +390,7 @@
 
             const vw = video.videoWidth;
             const vh = video.videoHeight;
-            const MAX = 800; // risoluzione di lavoro
+            const MAX = 800;
 
             let cw, ch;
             if (vw >= vh) {
@@ -571,157 +618,164 @@
             }
 
             const data = currentWorkerData;
-            const nomeFile = `Badge_${data.nome.replace(/\s+/g, '_')}.pdf`;
 
-            const printArea = document.createElement('div');
-            printArea.style.position = 'absolute';
-            printArea.style.left = '-9999px';
-            printArea.style.top = '0';
-            printArea.style.width = "210mm";
+            // 1) Prima prepariamo la foto croppata col giusto rapporto
+            preparePdfPhoto(data.foto, (pdfPhoto) => {
+                const photoSrc = pdfPhoto || data.foto || '';
 
-            const a4 = document.createElement('div');
-            a4.style.width = "210mm";
-            a4.style.padding = "20mm";
-            a4.style.background = "white";
+                const nomeFile = `Badge_${data.nome.replace(/\s+/g, '_')}.pdf`;
 
-            const badgeWrapper = document.createElement('div');
-            badgeWrapper.style.width = "85.6mm";
-            badgeWrapper.style.border = "0.2mm solid #000";
-            badgeWrapper.style.boxSizing = "border-box";
-            badgeWrapper.style.fontFamily = "Arial, sans-serif";
-            badgeWrapper.style.lineHeight = "1.2";
+                const printArea = document.createElement('div');
+                printArea.style.position = 'absolute';
+                printArea.style.left = '-9999px';
+                printArea.style.top = '0';
+                printArea.style.width = "210mm";
 
-            // RETRO
-            const retro = document.createElement('div');
-            retro.style.width = "100%";
-            retro.style.height = "53.98mm";
-            retro.style.transform = "rotate(180deg)";
-            retro.style.display = "flex";
-            retro.style.flexDirection = "column";
-            retro.style.boxSizing = "border-box";
-            retro.style.borderBottom = "0.1mm dashed #000";
+                const a4 = document.createElement('div');
+                a4.style.width = "210mm";
+                a4.style.padding = "20mm";
+                a4.style.background = "white";
 
-            retro.innerHTML = `
-                <div style="flex:1; display:flex; justify-content:space-around; align-items:center; padding:2mm">
-                    <div style="text-align:center; width:45%; display:flex; flex-direction:column; align-items:center;">
-                        <div style="height:8mm; display:flex; align-items:center; justify-content:center; font-size:6.5pt; font-weight:bold; color:#333; margin-bottom:1mm; overflow:hidden;">
-                            ${data.cf}
-                        </div>
-                        <div id="pdf-qr-badge" style="padding:1mm; background:white; border:0.1mm solid #ccc; line-height:0"></div>
-                        <div style="font-size:5.5pt; font-weight:bold; color:#1e3a8a; margin-top:2mm">VERSIONE DIGITALE</div>
-                    </div>
-                    <div style="text-align:center; width:45%; display:flex; flex-direction:column; align-items:center;">
-                        <div style="height:8mm; display:flex; align-items:center; justify-content:center; font-size:6.5pt; font-weight:bold; color:#333; margin-bottom:1mm; overflow:hidden; text-align:center;">
-                            ${data.datore}
-                        </div>
-                        <div id="pdf-qr-docs" style="padding:1mm; background:white; border:0.1mm solid #ccc; line-height:0"></div>
-                        <div style="font-size:5.5pt; font-weight:bold; color:#b45309; margin-top:2mm">DOC. SICUREZZA</div>
-                    </div>
-                </div>
-                <div style="font-size:4pt; text-align:center; color:#999; margin-bottom:1mm">PIEGARE QUI</div>
-            `;
+                const badgeWrapper = document.createElement('div');
+                badgeWrapper.style.width = "85.6mm";
+                badgeWrapper.style.border = "0.2mm solid #000";
+                badgeWrapper.style.boxSizing = "border-box";
+                badgeWrapper.style.fontFamily = "Arial, sans-serif";
+                badgeWrapper.style.lineHeight = "1.2";
 
-            // FRONTE
-            const fronte = document.createElement('div');
-            fronte.style.width = "100%";
-            fronte.style.height = "53.98mm";
-            fronte.style.display = "flex";
-            fronte.style.flexDirection = "column";
-            fronte.style.boxSizing = "border-box";
-            fronte.style.background = "white";
+                // RETRO
+                const retro = document.createElement('div');
+                retro.style.width = "100%";
+                retro.style.height = "53.98mm";
+                retro.style.transform = "rotate(180deg)";
+                retro.style.display = "flex";
+                retro.style.flexDirection = "column";
+                retro.style.boxSizing = "border-box";
+                retro.style.borderBottom = "0.1mm dashed #000";
 
-            fronte.innerHTML = `
-                <div style="background-color:#1e3a8a; height:13mm; display:flex; flex-direction:column; justify-content:center; text-align:center; color:white; padding:0 2mm">
-                    <div style="font-size:8.5pt; font-weight:bold; line-height:1.1">${data.datore}</div>
-                    <div style="font-size:5.5pt; opacity:0.9; margin-top:0.5mm; text-transform:uppercase">${data.indirizzo || ''}</div>
-                </div>
-                <div style="display:flex; padding:3mm; flex:1; position:relative;">
-                    <div style="width:28mm; height:34mm; border:0.3mm solid #eee; border-radius:1.5mm; overflow:hidden; background:#f8f8f8">
-                        <img src="${data.foto}" style="width:100%; height:100%; object-fit:cover;">
-                    </div>
-                    <div style="flex:1; padding-left:4mm; display:flex; flex-direction:column;">
-                        <div style="font-size:11pt; font-weight:bold; color:#000; line-height:1.1; margin-bottom:1mm">${data.nome}</div>
-                        <div style="font-size:7pt; font-weight:bold; color:#2563eb; text-transform:uppercase; margin-bottom:1mm">${data.mansione}</div>
-                        <div style="font-size:7pt; font-weight:bold; color:#000; margin-bottom:2mm">CF: ${data.cf}</div>
-                        
-                        <div style="display:flex; gap:4mm; margin-top:auto; margin-bottom:0;">
-                            <div>
-                                <span style="font-size:4.5pt; color:#666; font-weight:bold">NATO IL</span><br>
-                                <span style="font-size:6.5pt; font-weight:bold">${data.nascita}</span>
+                retro.innerHTML = `
+                    <div style="flex:1; display:flex; justify-content:space-around; align-items:center; padding:2mm">
+                        <div style="text-align:center; width:45%; display:flex; flex-direction:column; align-items:center;">
+                            <div style="height:8mm; display:flex; align-items:center; justify-content:center; font-size:6.5pt; font-weight:bold; color:#333; margin-bottom:1mm; overflow:hidden;">
+                                ${data.cf}
                             </div>
-                            <div>
-                                <span style="font-size:4.5pt; color:#666; font-weight:bold">ASSUNTO IL</span><br>
-                                <span style="font-size:6.5pt; font-weight:bold">${data.assunzione}</span>
+                            <div id="pdf-qr-badge" style="padding:1mm; background:white; border:0.1mm solid #ccc; line-height:0"></div>
+                            <div style="font-size:5.5pt; font-weight:bold; color:#1e3a8a; margin-top:2mm">VERSIONE DIGITALE</div>
+                        </div>
+                        <div style="text-align:center; width:45%; display:flex; flex-direction:column; align-items:center;">
+                            <div style="height:8mm; display:flex; align-items:center; justify-content:center; font-size:6.5pt; font-weight:bold; color:#333; margin-bottom:1mm; overflow:hidden; text-align:center;">
+                                ${data.datore}
+                            </div>
+                            <div id="pdf-qr-docs" style="padding:1mm; background:white; border:0.1mm solid #ccc; line-height:0"></div>
+                            <div style="font-size:5.5pt; font-weight:bold; color:#b45309; margin-top:2mm">DOC. SICUREZZA</div>
+                        </div>
+                    </div>
+                    <div style="font-size:4pt; text-align:center; color:#999; margin-bottom:1mm">PIEGARE QUI</div>
+                `;
+
+                // FRONTE
+                const fronte = document.createElement('div');
+                fronte.style.width = "100%";
+                fronte.style.height = "53.98mm";
+                fronte.style.display = "flex";
+                fronte.style.flexDirection = "column";
+                fronte.style.boxSizing = "border-box";
+                fronte.style.background = "white";
+
+                fronte.innerHTML = `
+                    <div style="background-color:#1e3a8a; height:13mm; display:flex; flex-direction:column; justify-content:center; text-align:center; color:white; padding:0 2mm">
+                        <div style="font-size:8.5pt; font-weight:bold; line-height:1.1">${data.datore}</div>
+                        <div style="font-size:5.5pt; opacity:0.9; margin-top:0.5mm; text-transform:uppercase">${data.indirizzo || ''}</div>
+                    </div>
+                    <div style="display:flex; padding:3mm; flex:1; position:relative;">
+                        <div style="width:28mm; height:34mm; border:0.3mm solid #eee; border-radius:1.5mm; overflow:hidden; background:#f8f8f8">
+                            <!-- qui niente object-fit: la foto è già croppata col giusto rapporto -->
+                            <img src="${photoSrc}" style="width:100%; height:100%;">
+                        </div>
+                        <div style="flex:1; padding-left:4mm; display:flex; flex-direction:column;">
+                            <div style="font-size:11pt; font-weight:bold; color:#000; line-height:1.1; margin-bottom:1mm">${data.nome}</div>
+                            <div style="font-size:7pt; font-weight:bold; color:#2563eb; text-transform:uppercase; margin-bottom:1mm">${data.mansione}</div>
+                            <div style="font-size:7pt; font-weight:bold; color:#000; margin-bottom:2mm">CF: ${data.cf}</div>
+                            
+                            <div style="display:flex; gap:4mm; margin-top:auto; margin-bottom:0;">
+                                <div>
+                                    <span style="font-size:4.5pt; color:#666; font-weight:bold">NATO IL</span><br>
+                                    <span style="font-size:6.5pt; font-weight:bold">${data.nascita}</span>
+                                </div>
+                                <div>
+                                    <span style="font-size:4.5pt; color:#666; font-weight:bold">ASSUNTO IL</span><br>
+                                    <span style="font-size:6.5pt; font-weight:bold">${data.assunzione}</span>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <!-- FOOTER A TUTTA LARGHEZZA, SOTTO FOTO + DATI -->
-                <div style="font-size:5.5pt; color:#333; font-weight:bold; border-top:0.2mm solid #ddd; padding:1.5mm 3mm 2mm 3mm; text-align:center;">
-                    ${data.datore} - Art. 18 D.Lgs. 81/08
-                </div>
-            `;
+                    <!-- FOOTER A TUTTA LARGHEZZA, SOTTO FOTO + DATI -->
+                    <div style="font-size:5.5pt; color:#333; font-weight:bold; border-top:0.2mm solid #ddd; padding:1.5mm 3mm 2mm 3mm; text-align:center; width:100%;">
+                        ${data.datore} - Art. 18 D.Lgs. 81/08
+                    </div>
+                `;
 
-            badgeWrapper.appendChild(retro);
-            badgeWrapper.appendChild(fronte);
-            a4.appendChild(badgeWrapper);
+                badgeWrapper.appendChild(retro);
+                badgeWrapper.appendChild(fronte);
+                a4.appendChild(badgeWrapper);
 
-            const istruzioni = document.createElement('div');
-            istruzioni.style.marginTop = "10mm";
-            istruzioni.style.fontSize = "8pt";
-            istruzioni.style.color = "#666";
-            istruzioni.innerHTML =
-                "<b>ISTRUZIONI DI STAMPA:</b><br>" +
-                "1. Ritaglia lungo il bordo nero solido.<br>" +
-                "2. Piega a metà sulla linea tratteggiata.<br>" +
-                "3. Inserisci nel portatesserino standard.<br>" +
-                "4. Verifica il funzionamento dei QR code.";
-            a4.appendChild(istruzioni);
+                const istruzioni = document.createElement('div');
+                istruzioni.style.marginTop = "10mm";
+                istruzioni.style.fontSize = "8pt";
+                istruzioni.style.color = "#666";
+                istruzioni.innerHTML =
+                    "<b>ISTRUZIONI DI STAMPA:</b><br>" +
+                    "1. Ritaglia lungo il bordo nero solido.<br>" +
+                    "2. Piega a metà sulla linea tratteggiata.<br>" +
+                    "3. Inserisci nel portatesserino standard.<br>" +
+                    "4. Verifica il funzionamento dei QR code.";
+                a4.appendChild(istruzioni);
 
-            printArea.appendChild(a4);
-            document.body.appendChild(printArea);
+                printArea.appendChild(a4);
+                document.body.appendChild(printArea);
 
-            // QR in PNG
-            const drawQR = (containerId, text) => {
-                const tempDiv = document.createElement('div');
-                new QRCode(tempDiv, {
-                    text: text,
-                    width: 120,
-                    height: 120,
-                    correctLevel: QRCode.CorrectLevel.H
-                });
-                const canvas = tempDiv.querySelector('canvas');
-                if (canvas) {
-                    const img = document.createElement('img');
-                    img.src = canvas.toDataURL("image/png");
-                    img.style.width = "22mm";
-                    img.style.height = "22mm";
-                    document.getElementById(containerId).appendChild(img);
-                }
-            };
-
-            drawQR("pdf-qr-badge", window.location.origin + window.location.pathname + "?id=" + data.cf);
-            const docUrl = (data.drive && data.drive !== "#")
-                ? data.drive
-                : (window.location.origin + window.location.pathname + "?id=" + data.cf);
-            drawQR("pdf-qr-docs", docUrl);
-
-            setTimeout(() => {
-                const opt = {
-                    margin: 0,
-                    filename: nomeFile,
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: {
-                        scale: 4,
-                        useCORS: true
-                    },
-                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                // QR -> PNG
+                const drawQR = (containerId, text) => {
+                    const tempDiv = document.createElement('div');
+                    new QRCode(tempDiv, {
+                        text: text,
+                        width: 120,
+                        height: 120,
+                        correctLevel: QRCode.CorrectLevel.H
+                    });
+                    const canvas = tempDiv.querySelector('canvas');
+                    if (canvas) {
+                        const img = document.createElement('img');
+                        img.src = canvas.toDataURL("image/png");
+                        img.style.width = "22mm";
+                        img.style.height = "22mm";
+                        document.getElementById(containerId).appendChild(img);
+                    }
                 };
 
-                html2pdf().from(a4).set(opt).save().then(() => {
-                    document.body.removeChild(printArea);
-                });
-            }, 1200);
+                drawQR("pdf-qr-badge", window.location.origin + window.location.pathname + "?id=" + data.cf);
+                const docUrl = (data.drive && data.drive !== "#")
+                    ? data.drive
+                    : (window.location.origin + window.location.pathname + "?id=" + data.cf);
+                drawQR("pdf-qr-docs", docUrl);
+
+                setTimeout(() => {
+                    const opt = {
+                        margin: 0,
+                        filename: nomeFile,
+                        image: { type: 'jpeg', quality: 0.98 },
+                        html2canvas: {
+                            scale: 4,
+                            useCORS: true
+                        },
+                        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                    };
+
+                    html2pdf().from(a4).set(opt).save().then(() => {
+                        document.body.removeChild(printArea);
+                    });
+                }, 1200);
+            });
         }
 
         // Autoload da ?id=CF
