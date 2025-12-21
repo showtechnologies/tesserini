@@ -372,32 +372,40 @@
         }
 
         // --- 3. EXPORT PDF AGGIORNATO E CORRETTO ---
+        // --- 3. EXPORT PDF AGGIORNATO E CORRETTO ---
         function downloadPDF() {
+            if (!currentWorkerData) {
+                alert("Nessun dato lavoratore caricato.");
+                return;
+            }
+
             const data = currentWorkerData;
+            // Pulisce il nome file per evitare caratteri strani
             const nomeFile = `Badge_${data.nome.replace(/\s+/g, '_')}.pdf`;
 
-            // Area temporanea invisibile per rendering
+            // 1. Creazione area temporanea invisibile per rendering
+            // Usiamo una posizione assoluta fuori schermo per non disturbare l'UI
             const printArea = document.createElement('div');
             printArea.style.position = 'absolute';
             printArea.style.left = '-9999px';
             printArea.style.top = '0';
-            printArea.style.width = "210mm";
-            
-            // Foglio A4
+            printArea.style.width = "210mm"; // Larghezza A4
+
+            // 2. Struttura Foglio A4
             const a4 = document.createElement('div');
             a4.style.width = "210mm";
-            a4.style.padding = "20mm";
+            a4.style.padding = "20mm"; // Margini stampante standard
             a4.style.background = "white";
 
-            // Contenitore Badge (85.6mm larghezza)
+            // 3. Contenitore Badge (85.6mm larghezza - Standard ISO CR-80)
             const badgeWrapper = document.createElement('div');
             badgeWrapper.style.width = "85.6mm";
-            badgeWrapper.style.border = "0.2mm solid #000";
+            badgeWrapper.style.border = "0.2mm solid #000"; // Bordo taglio
             badgeWrapper.style.boxSizing = "border-box";
             badgeWrapper.style.fontFamily = "Arial, sans-serif";
             badgeWrapper.style.lineHeight = "1.2";
 
-            // --- SEZIONE RETRO (RUOTATA 180° PER PIEGATURA) ---
+            // --- SEZIONE RETRO (RUOTATA 180° PER PIEGATURA A LIBRETTO) ---
             const retro = document.createElement('div');
             retro.style.width = "100%";
             retro.style.height = "53.98mm"; // Altezza ISO standard
@@ -405,8 +413,8 @@
             retro.style.display = "flex";
             retro.style.flexDirection = "column";
             retro.style.boxSizing = "border-box";
-            retro.style.borderBottom = "0.1mm dashed #000"; // Linea di piega
-            
+            retro.style.borderBottom = "0.1mm dashed #000"; // Linea di piega centrale
+
             retro.innerHTML = `
                 <div style="flex:1; display:flex; justify-content:space-around; align-items:center; padding:2mm">
                     <div style="text-align:center; width:45%; display:flex; flex-direction:column; align-items:center;">
@@ -435,7 +443,7 @@
             fronte.style.flexDirection = "column";
             fronte.style.boxSizing = "border-box";
             fronte.style.background = "white";
-            
+
             fronte.innerHTML = `
                 <div style="background-color:#1e3a8a; height:13mm; display:flex; flex-direction:column; justify-content:center; text-align:center; color:white; padding:0 2mm">
                     <div style="font-size:8.5pt; font-weight:bold; line-height:1.1">${data.datore}</div>
@@ -462,56 +470,73 @@
                 </div>
             `;
 
+            // Assemblaggio DOM
             badgeWrapper.appendChild(retro);
             badgeWrapper.appendChild(fronte);
             a4.appendChild(badgeWrapper);
-            
-            // Istruzioni esterne
+
+            // Istruzioni per l'utente (fuori dal badge)
             const istruzioni = document.createElement('div');
             istruzioni.style.marginTop = "10mm";
             istruzioni.style.fontSize = "8pt";
             istruzioni.style.color = "#666";
-            istruzioni.innerHTML = "<b>ISTRUZIONI DI STAMPA:</b><br>1. Ritaglia lungo il bordo nero solido.<br>2. Piega a metà sulla linea tratteggiata.<br>3. Inserisci nel portatesserino.<br>4. Verifica i QR code.";
+            istruzioni.innerHTML = "<b>ISTRUZIONI DI STAMPA:</b><br>1. Ritaglia lungo il bordo nero solido.<br>2. Piega a metà sulla linea tratteggiata.<br>3. Inserisci nel portatesserino standard.<br>4. Verifica il funzionamento dei QR code.";
             a4.appendChild(istruzioni);
 
             printArea.appendChild(a4);
             document.body.appendChild(printArea);
 
-            // FUNZIONE GENERAZIONE QR SINCRONA (Fix per PDF invisibile)
+            // --- FUNZIONE GENERAZIONE QR SINCRONA (Fix per PDF invisibile) ---
+            // html2pdf spesso fallisce con i canvas dei QR code.
+            // Soluzione: Convertiamo il canvas del QR in una immagine PNG statica.
             const drawQR = (containerId, text) => {
                 const tempDiv = document.createElement('div');
+                // Genera QR in memoria
                 new QRCode(tempDiv, {
                     text: text,
-                    width: 120, // Risoluzione alta per stampa
+                    width: 120, // Alta risoluzione per stampa nitida
                     height: 120,
                     correctLevel: QRCode.CorrectLevel.H
                 });
+                
+                // Estrai il canvas generato dalla libreria
                 const canvas = tempDiv.querySelector('canvas');
-                const img = document.createElement('img');
-                img.src = canvas.toDataURL("image/png"); // Converte in PNG statico
-                img.style.width = "22mm";
-                img.style.height = "22mm";
-                document.getElementById(containerId).appendChild(img);
+                if(canvas){
+                     const img = document.createElement('img');
+                     img.src = canvas.toDataURL("image/png");
+                     img.style.width = "22mm";
+                     img.style.height = "22mm";
+                     document.getElementById(containerId).appendChild(img);
+                }
             };
 
-            // Genera i due QR
+            // Generazione dei 2 QR
+            // QR 1: Link al tesserino digitale
             drawQR("pdf-qr-badge", window.location.origin + window.location.pathname + "?id=" + data.cf);
+            
+            // QR 2: Link al Drive Documenti (o fallback al tesserino se vuoto)
             const docUrl = (data.drive && data.drive !== "#") ? data.drive : (window.location.origin + window.location.pathname + "?id=" + data.cf);
             drawQR("pdf-qr-docs", docUrl);
 
-            // Delay per rendering e salvataggio
+            // Delay per assicurare che le immagini (foto profilo e QR) siano renderizzate nel DOM
             setTimeout(() => {
                 const opt = {
                     margin: 0,
                     filename: nomeFile,
-                    image: { type: 'jpeg', quality: 1 },
-                    html2canvas: { scale: 4, useCORS: true },
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: {
+                        scale: 4, // Alta scala per testi nitidi
+                        useCORS: true // Necessario per immagini caricate da URL esterni/base64
+                    },
                     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
                 };
+
+                // Generazione e Download
                 html2pdf().from(a4).set(opt).save().then(() => {
+                    // Pulizia del DOM alla fine
                     document.body.removeChild(printArea);
                 });
-            }, 1200);
+            }, 1200); // 1.2 secondi di attesa
         }
 
         window.onload = () => {
